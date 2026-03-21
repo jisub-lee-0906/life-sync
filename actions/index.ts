@@ -16,3 +16,4 @@ export {
   toggleRoutineCheck,
   updateTaskProgress,
 } from "@/actions/planner";
+export { updateIcons } from "@/actions/settings";

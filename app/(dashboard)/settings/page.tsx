@@ -1,16 +1,53 @@
-import { SectionLanding } from "@/components/section-landing";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataBackupPanel } from "@/components/settings/data-backup-panel";
+import { IconPreferencesForm } from "@/components/settings/icon-preferences-form";
+import { db, hasDatabaseUrl } from "@/lib/db";
+import { resolveIconPreferences } from "@/lib/settings";
 
-export default function SettingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SettingsPage() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const currentSettings =
+    hasDatabaseUrl
+      ? await db.query.settings.findFirst({
+          columns: {
+            scheduleIcon: true,
+            todoIcon: true,
+          },
+          where: (table, { eq }) => eq(table.userId, session.user.id),
+        })
+      : null;
+
+  const initialValues = resolveIconPreferences(currentSettings);
+
   return (
-    <SectionLanding
-      eyebrow="Settings & Admin"
-      title="환경설정, 승인 관리, 데이터 이관 기능이 모일 관리 공간을 확보했습니다."
-      description="이제 Settings 탭 아래에 관리자 승인 페이지(`/settings/admin`)가 추가됩니다. CSV 입출력과 세부 환경설정은 이후 단계에서 이어서 붙입니다."
-      highlights={[
-        "아이콘 커스터마이징과 사용자 승인 패널이 들어갈 레이아웃 분리",
-        "데이터 Import/Export와 보안 설정을 같은 관리 컨텍스트로 고정",
-        "Auth.js 승인제와 연결될 관리자 엔트리 `/settings/admin` 확보",
-      ]}
-    />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Preferences</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <IconPreferencesForm initialValues={initialValues} />
+        </CardContent>
+      </Card>
+
+      <Card id="data-backup">
+        <CardHeader>
+          <CardTitle>Data & Backup</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataBackupPanel disabled={!hasDatabaseUrl} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
