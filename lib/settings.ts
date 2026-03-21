@@ -71,4 +71,3 @@ export function resolveIconPreferences(
     todoIcon: input?.todoIcon?.trim() || DEFAULT_TODO_ICON,
   };
 }
-
