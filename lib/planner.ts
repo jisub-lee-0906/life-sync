@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { formatTransactionDate } from "@/lib/finance";
+import {
+  parseValidatedCalendarDate,
+  parseValidatedYearMonth,
+} from "@/lib/planner-date";
 
 export type CalendarDaySummary = {
   completedTasksCount: number;
@@ -69,11 +73,30 @@ export type TaskCompletionDatum = {
   totalCount: number;
 };
 
-export const yearMonthSchema = z.string().trim().regex(/^\d{4}-\d{2}$/);
+export const yearMonthSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}$/)
+  .refine((value) => {
+    try {
+      parseValidatedYearMonth(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Use a real calendar month in YYYY-MM format.");
 export const calendarDateSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}-\d{2}-\d{2}$/);
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((value) => {
+    try {
+      parseValidatedCalendarDate(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Use a real calendar date in YYYY-MM-DD format.");
 
 export const routineDaySchema = z.enum([
   "monCheck",
@@ -91,9 +114,7 @@ function buildLocalDate(year: number, monthIndex: number, day: number) {
 
 export function parseYearMonthRange(value: string) {
   const yearMonth = yearMonthSchema.parse(value);
-  const [yearString, monthString] = yearMonth.split("-");
-  const year = Number(yearString);
-  const monthIndex = Number(monthString) - 1;
+  const { monthIndex, year } = parseValidatedYearMonth(yearMonth);
 
   return {
     endExclusive: buildLocalDate(year, monthIndex + 1, 1),
@@ -104,16 +125,7 @@ export function parseYearMonthRange(value: string) {
 
 export function parseCalendarDate(value: string) {
   const dateString = calendarDateSchema.parse(value);
-  const [yearString, monthString, dayString] = dateString.split("-");
-
-  return {
-    date: buildLocalDate(
-      Number(yearString),
-      Number(monthString) - 1,
-      Number(dayString),
-    ),
-    dateString,
-  };
+  return parseValidatedCalendarDate(dateString);
 }
 
 export function nextDay(date: Date) {
