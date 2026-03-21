@@ -39,42 +39,42 @@ const navigationItems: NavigationItem[] = [
     href: "/finance",
     label: "Finance",
     shortLabel: "자산",
-    description: "가계부 홈",
+    description: "가계부와 자산 흐름",
     icon: PiggyBank,
   },
   {
     href: "/calendar",
     label: "Calendar",
     shortLabel: "캘린더",
-    description: "통합 캘린더",
+    description: "통합 라이프 캘린더",
     icon: CalendarDays,
   },
   {
     href: "/todo-routine",
     label: "Todo & Routine",
-    shortLabel: "할 일",
-    description: "할 일과 루틴",
+    shortLabel: "루틴",
+    description: "할 일과 루틴 관리",
     icon: CheckSquare,
   },
   {
     href: "/mandalart",
     label: "Mandalart",
     shortLabel: "목표",
-    description: "만다라트 목표",
+    description: "만다라트 목표 보드",
     icon: Goal,
   },
   {
     href: "/analytics",
     label: "Analytics",
     shortLabel: "통계",
-    description: "통합 통계",
+    description: "통합 분석과 통계",
     icon: BarChart3,
   },
   {
     href: "/settings",
     label: "Settings",
     shortLabel: "설정",
-    description: "환경설정 및 관리자",
+    description: "환경설정과 관리자 기능",
     icon: Settings,
   },
 ];
@@ -170,10 +170,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="mt-auto rounded-3xl bg-sidebar-primary/10 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Step 1 Focus
+              Live Dashboard
             </p>
             <p className="mt-2 text-sm leading-6 text-foreground/80">
-              Tailwind v4 CSS tokens, App Router dashboard shell, and PWA structure are fixed.
+              Finance, planner, routine, mandalart, analytics, and settings are all connected
+              through the same private workspace.
             </p>
           </div>
         </aside>
@@ -198,7 +199,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   <SheetHeader>
                     <SheetTitle>LifeSync</SheetTitle>
                     <SheetDescription>
-                      Dashboard routes for finance, planning, routines, and admin.
+                      Dashboard routes for finance, planning, routines, analytics, and admin.
                     </SheetDescription>
                   </SheetHeader>
                   <div className="px-4 pb-6">
@@ -237,3 +238,4 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
