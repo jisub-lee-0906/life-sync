@@ -24,6 +24,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  getDashboardRouteMeta,
+  isDashboardRouteActive,
+} from "@/lib/dashboard-navigation";
 import { cn } from "@/lib/utils";
 
 type NavigationItem = {
@@ -79,16 +83,6 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-const routeMeta = new Map(
-  navigationItems.map((item) => [
-    item.href,
-    {
-      description: item.description,
-      label: item.label,
-    },
-  ]),
-);
-
 function SideNavigation({
   onNavigate,
   pathname,
@@ -99,7 +93,7 @@ function SideNavigation({
   return (
     <nav className="flex flex-col gap-2">
       {navigationItems.map(({ description, href, icon: Icon, label, shortLabel }) => {
-        const active = pathname === href;
+        const active = isDashboardRouteActive(pathname, href);
 
         return (
           <Link
@@ -146,10 +140,7 @@ function SideNavigation({
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const activeMeta = routeMeta.get(pathname) ?? {
-    label: "LifeSync",
-    description: "Dashboard",
-  };
+  const activeMeta = getDashboardRouteMeta(pathname);
 
   return (
     <div className="relative min-h-screen">
@@ -238,4 +229,3 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
