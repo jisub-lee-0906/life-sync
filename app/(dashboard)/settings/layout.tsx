@@ -14,7 +14,7 @@ export default async function SettingsLayout({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
       <aside className="rounded-3xl border bg-background/70 p-4">
         <div className="mb-4 space-y-1">
           <p className="text-sm font-semibold">Settings hub</p>
@@ -25,8 +25,7 @@ export default async function SettingsLayout({
         <SettingsNavigation isAdmin={session.user.role === "ADMIN"} />
       </aside>
 
-      <div className="space-y-6">{children}</div>
+      <div className="space-y-5 sm:space-y-6">{children}</div>
     </div>
   );
 }
-

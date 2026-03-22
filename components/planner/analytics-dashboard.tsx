@@ -14,15 +14,17 @@ export function AnalyticsDashboard({
   taskCompletion: TaskCompletionDatum;
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Expense by category</CardTitle>
           <CardDescription>Current month expense distribution.</CardDescription>
         </CardHeader>
-        <CardContent className="h-80">
+        <CardContent className="h-72 sm:h-80">
           {expenseByCategory.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No expense data for this month.</div>
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No expense data for this month.
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -50,7 +52,7 @@ export function AnalyticsDashboard({
         <CardContent className="space-y-4">
           <div className="rounded-2xl border p-4">
             <p className="text-sm text-muted-foreground">Completion rate</p>
-            <p className="mt-2 font-heading text-5xl">{taskCompletion.completionRate}%</p>
+            <p className="mt-2 font-heading text-4xl sm:text-5xl">{taskCompletion.completionRate}%</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border p-4">

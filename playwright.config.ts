@@ -6,6 +6,10 @@ loadTestEnv();
 const port = Number(process.env.E2E_PORT ?? 3000);
 const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
 const databaseURL = process.env.E2E_DATABASE_URL ?? process.env.DATABASE_URL;
+const webServerEnv = {
+  ...process.env,
+  ...(databaseURL ? { DATABASE_URL: databaseURL } : {}),
+};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -35,10 +39,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `npx next dev --webpack --hostname 127.0.0.1 --port ${port}`,
-    env: {
-      ...process.env,
-      DATABASE_URL: databaseURL,
-    },
+    env: webServerEnv,
     reuseExistingServer: !process.env.CI,
     stdout: "pipe",
     stderr: "pipe",

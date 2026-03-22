@@ -3,8 +3,9 @@ export type DashboardRouteMeta = {
   label: string;
 };
 
-type DashboardRouteDefinition = {
+export type DashboardRouteDefinition = {
   href: string;
+  mobilePrimary?: boolean;
   meta: DashboardRouteMeta;
 };
 
@@ -16,6 +17,7 @@ const fallbackRouteMeta: DashboardRouteMeta = {
 const routeDefinitions: DashboardRouteDefinition[] = [
   {
     href: "/settings/admin",
+    mobilePrimary: false,
     meta: {
       description: "Pending approvals",
       label: "Admin",
@@ -23,6 +25,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/finance",
+    mobilePrimary: true,
     meta: {
       description: "Finance tracking",
       label: "Finance",
@@ -30,6 +33,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/calendar",
+    mobilePrimary: true,
     meta: {
       description: "Life calendar",
       label: "Calendar",
@@ -37,6 +41,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/todo-routine",
+    mobilePrimary: true,
     meta: {
       description: "Tasks and routines",
       label: "Todo & Routine",
@@ -44,6 +49,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/mandalart",
+    mobilePrimary: true,
     meta: {
       description: "Goal board",
       label: "Mandalart",
@@ -51,6 +57,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/analytics",
+    mobilePrimary: false,
     meta: {
       description: "Analytics and trends",
       label: "Analytics",
@@ -58,6 +65,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
   },
   {
     href: "/settings",
+    mobilePrimary: true,
     meta: {
       description: "Preferences and backup",
       label: "Settings",
@@ -79,4 +87,8 @@ export function getDashboardRouteMeta(pathname: string): DashboardRouteMeta {
   );
 
   return matchedRoute?.meta ?? fallbackRouteMeta;
+}
+
+export function getDashboardRoutes() {
+  return routeDefinitions;
 }

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   getDashboardRouteMeta,
+  getDashboardRoutes,
   isDashboardRouteActive,
 } from "@/lib/dashboard-navigation";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,12 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
+const mobilePrimaryRoutes = new Set(
+  getDashboardRoutes()
+    .filter((route) => route.mobilePrimary)
+    .map((route) => route.href),
+);
+
 function SideNavigation({
   onNavigate,
   pathname,
@@ -101,7 +108,7 @@ function SideNavigation({
             href={href}
             onClick={onNavigate}
             className={cn(
-              "group flex items-center justify-between rounded-2xl border px-4 py-3 transition",
+              "group flex min-h-11 items-center justify-between rounded-2xl border px-4 py-3 transition md:min-h-10",
               active
                 ? "border-transparent bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                 : "border-transparent bg-transparent hover:border-sidebar-border hover:bg-white/70",
@@ -110,7 +117,7 @@ function SideNavigation({
             <span className="flex items-center gap-3">
               <span
                 className={cn(
-                  "flex size-10 items-center justify-center rounded-2xl transition",
+                  "flex size-11 items-center justify-center rounded-2xl transition md:size-10",
                   active
                     ? "bg-white/16 text-sidebar-primary-foreground"
                     : "bg-sidebar-accent text-sidebar-accent-foreground",
@@ -138,14 +145,44 @@ function SideNavigation({
   );
 }
 
+function MobileBottomNavigation({ pathname }: { pathname: string }) {
+  return (
+    <nav className="safe-pb fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 px-2 pb-2 pt-2 backdrop-blur lg:hidden">
+      <div className="mx-auto grid max-w-xl grid-cols-5 gap-1">
+        {navigationItems
+          .filter((item) => mobilePrimaryRoutes.has(item.href))
+          .map(({ href, icon: Icon, label }) => {
+            const active = isDashboardRouteActive(pathname, href);
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex min-h-11 flex-col items-center justify-center rounded-2xl px-2 py-2 text-[0.7rem] font-medium transition",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+                <span className="mt-1 leading-none">{label}</span>
+              </Link>
+            );
+          })}
+      </div>
+    </nav>
+  );
+}
+
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeMeta = getDashboardRouteMeta(pathname);
 
   return (
-    <div className="relative min-h-screen">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-4 py-4 sm:px-6 lg:px-8">
-        <aside className="glass-panel sticky top-4 hidden h-[calc(100vh-2rem)] w-80 shrink-0 rounded-[2rem] border border-white/60 p-5 lg:flex lg:flex-col">
+    <div className="relative min-h-[100dvh]">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1600px] gap-6 px-3 py-3 sm:px-4 sm:py-4 lg:px-8">
+        <aside className="glass-panel sticky top-4 hidden h-[calc(100dvh-2rem)] w-80 shrink-0 rounded-[2rem] border border-white/60 p-5 lg:flex lg:flex-col">
           <div className="space-y-4">
             <div className="space-y-3">
               <Badge variant="outline">LifeSync v1.2</Badge>
@@ -170,9 +207,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <div className="flex min-h-[calc(100vh-2rem)] flex-1 flex-col rounded-[2rem] border border-white/60 bg-white/70 shadow-[0_32px_80px_-48px_rgba(42,61,96,0.45)] backdrop-blur-xl">
-          <header className="flex items-center justify-between gap-4 border-b border-border/60 px-4 py-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3">
+        <div className="flex min-h-[calc(100dvh-1.5rem)] flex-1 flex-col rounded-[1.75rem] border border-white/60 bg-white/70 shadow-[0_32px_80px_-48px_rgba(42,61,96,0.45)] backdrop-blur-xl sm:rounded-[2rem]">
+          <header className="safe-pt flex flex-wrap items-start justify-between gap-3 border-b border-border/60 px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
               <Sheet>
                 <SheetTrigger
                   render={
@@ -199,11 +236,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 </SheetContent>
               </Sheet>
 
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              <div className="min-w-0">
+                <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground sm:text-xs">
                   {activeMeta.description}
                 </p>
-                <h1 className="font-heading text-2xl leading-none tracking-tight sm:text-3xl">
+                <h1 className="font-heading text-xl leading-tight tracking-tight sm:text-3xl">
                   {activeMeta.label}
                 </h1>
               </div>
@@ -216,8 +253,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <main className="flex-1 px-4 py-5 pb-28 sm:px-6 sm:py-6 sm:pb-8 lg:px-8 lg:pb-8">
+            <div className="mb-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground sm:mb-6">
               <span>Dashboard</span>
               <ChevronRight className="size-4" />
               <span>{activeMeta.label}</span>
@@ -226,6 +263,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+      <MobileBottomNavigation pathname={pathname} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export default async function TodoRoutinePage() {
   ]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Routine Tracker</CardTitle>

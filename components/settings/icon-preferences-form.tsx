@@ -52,8 +52,8 @@ export function IconPreferencesForm({
             autoComplete="off"
             maxLength={10}
             {...form.register("scheduleIcon")}
-            className="rounded-lg border px-3 py-2"
-            placeholder="🗓️"
+            className="min-h-11 rounded-xl border px-3 py-2"
+            placeholder="📅"
           />
           <span className="text-xs text-muted-foreground">
             Supports emoji and composed emoji sequences.
@@ -67,7 +67,7 @@ export function IconPreferencesForm({
             autoComplete="off"
             maxLength={10}
             {...form.register("todoIcon")}
-            className="rounded-lg border px-3 py-2"
+            className="min-h-11 rounded-xl border px-3 py-2"
             placeholder="✅"
           />
           <span className="text-xs text-muted-foreground">
@@ -92,7 +92,7 @@ export function IconPreferencesForm({
         <p className="text-sm text-muted-foreground">{serverMessage}</p>
       ) : null}
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Saving..." : "Save preferences"}
       </Button>
     </form>

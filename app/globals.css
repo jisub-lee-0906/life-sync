@@ -92,7 +92,7 @@
   }
 
   body {
-    @apply min-h-screen bg-background text-foreground;
+    @apply min-h-[100dvh] bg-background text-foreground;
     background-image:
       radial-gradient(circle at top left, color-mix(in oklab, var(--accent) 20%, transparent), transparent 26rem),
       radial-gradient(circle at bottom right, color-mix(in oklab, var(--primary) 14%, transparent), transparent 28rem),
@@ -104,5 +104,17 @@
   .glass-panel {
     background: color-mix(in oklab, var(--card) 84%, white);
     backdrop-filter: blur(18px);
+  }
+
+  .safe-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    bottom: env(safe-area-inset-bottom);
   }
 }

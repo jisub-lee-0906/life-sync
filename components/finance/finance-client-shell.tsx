@@ -145,10 +145,10 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <QuickAddForm isPending={isPending} onSubmit={handleCreate} />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <CsvUploader disabled={isPending} onImport={handleImport} />
         <CsvExportButton disabled={!hasItems || isPending} onExport={handleExport} />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type DataBackupPanelProps = {
   disabled?: boolean;
@@ -14,11 +15,14 @@ export function DataBackupPanel({ disabled }: DataBackupPanelProps) {
         routines, mandalart, and saved icon preferences.
       </p>
       {disabled ? (
-        <Button type="button" disabled variant="outline">
+        <Button type="button" disabled variant="outline" className="w-full sm:w-auto">
           Download full backup
         </Button>
       ) : (
-        <a href="/api/backup" className={buttonVariants({ variant: "outline" })}>
+        <a
+          href="/api/backup"
+          className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
+        >
           Download full backup
         </a>
       )}

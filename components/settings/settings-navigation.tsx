@@ -51,7 +51,7 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
   }, []);
 
   return (
-    <nav className="space-y-2">
+    <nav className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
       {items.map((item) => {
         const active = isSettingsNavigationItemActive(pathname, hash, item.href);
 
@@ -60,7 +60,7 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "block rounded-2xl border px-4 py-3 transition",
+              "block min-h-11 rounded-2xl border px-4 py-3 transition",
               active
                 ? "border-transparent bg-sidebar-primary text-sidebar-primary-foreground"
                 : "hover:border-border hover:bg-muted/40",

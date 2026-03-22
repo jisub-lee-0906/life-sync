@@ -17,44 +17,52 @@ export function TaskProgressPanel({ tasks }: { tasks: TaskOverviewItem[] }) {
   }
 
   if (tasks.length === 0) {
-    return <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No tasks yet.</p>;
+    return (
+      <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+        No tasks yet.
+      </p>
+    );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 sm:space-y-4">
       {tasks.map((task) => {
         const currentValue = taskProgress[task.id] ?? task.progress;
 
         return (
-          <div key={task.id} className="rounded-2xl border p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
+          <div key={task.id} className="rounded-3xl border p-4 sm:p-5">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-medium">{task.title}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm leading-6 text-muted-foreground">
                   {task.date} · {task.type} · {task.priority}
                 </p>
               </div>
-              <Badge variant="outline">{currentValue}%</Badge>
+              <Badge variant="outline" className="self-start sm:self-auto">
+                {currentValue}%
+              </Badge>
             </div>
-            <Slider
-              min={0}
-              max={100}
-              step={1}
-              value={[currentValue]}
-              onValueChange={(values) => {
-                const nextValue = readSliderValue(values);
-                setTaskProgress((current) => ({
-                  ...current,
-                  [task.id]: nextValue,
-                }));
-              }}
-              onValueCommitted={(values) => {
-                const committedValue = readSliderValue(values);
-                startTransition(async () => {
-                  await updateTaskProgress(task.id, committedValue);
-                });
-              }}
-            />
+            <div className="rounded-2xl bg-muted/35 px-3">
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[currentValue]}
+                onValueChange={(values) => {
+                  const nextValue = readSliderValue(values);
+                  setTaskProgress((current) => ({
+                    ...current,
+                    [task.id]: nextValue,
+                  }));
+                }}
+                onValueCommitted={(values) => {
+                  const committedValue = readSliderValue(values);
+                  startTransition(async () => {
+                    await updateTaskProgress(task.id, committedValue);
+                  });
+                }}
+              />
+            </div>
             {isPending ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 Saved only when you release the slider.

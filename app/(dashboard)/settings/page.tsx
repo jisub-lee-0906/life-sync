@@ -29,7 +29,7 @@ export default async function SettingsPage() {
   const initialValues = resolveIconPreferences(currentSettings);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Preferences</CardTitle>
@@ -50,4 +50,3 @@ export default async function SettingsPage() {
     </div>
   );
 }
-
