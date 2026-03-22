@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isSettingsNavigationItemActive } from "@/lib/settings-navigation";
 import { cn } from "@/lib/utils";
 
 type SettingsNavigationProps = {
@@ -23,6 +25,7 @@ const baseItems = [
 
 export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
   const items = isAdmin
     ? [
         ...baseItems,
@@ -34,13 +37,23 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
       ]
     : baseItems;
 
+  useEffect(() => {
+    const syncHash = () => {
+      setHash(window.location.hash);
+    };
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+    };
+  }, []);
+
   return (
     <nav className="space-y-2">
       {items.map((item) => {
-        const active =
-          item.href === "/settings#data-backup"
-            ? pathname === "/settings"
-            : pathname === item.href;
+        const active = isSettingsNavigationItemActive(pathname, hash, item.href);
 
         return (
           <Link
@@ -68,4 +81,3 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
     </nav>
   );
 }
-
