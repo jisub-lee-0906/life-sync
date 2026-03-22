@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isSettingsNavigationItemActive } from "@/lib/settings-navigation";
@@ -18,14 +17,13 @@ const baseItems = [
   },
   {
     description: "내 데이터를 파일로 저장해요.",
-    href: "/settings#data-backup",
+    href: "/settings/backup",
     label: "백업",
   },
 ];
 
 export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
   const pathname = usePathname();
-  const [hash, setHash] = useState("");
   const items = isAdmin
     ? [
         ...baseItems,
@@ -37,23 +35,10 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
       ]
     : baseItems;
 
-  useEffect(() => {
-    const syncHash = () => {
-      setHash(window.location.hash);
-    };
-
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-
-    return () => {
-      window.removeEventListener("hashchange", syncHash);
-    };
-  }, []);
-
   return (
     <nav className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
       {items.map((item) => {
-        const active = isSettingsNavigationItemActive(pathname, hash, item.href);
+        const active = isSettingsNavigationItemActive(pathname, item.href);
 
         return (
           <Link
