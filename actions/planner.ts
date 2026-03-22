@@ -7,6 +7,7 @@ import { db, hasDatabaseUrl } from "@/lib/db";
 import {
   buildDaySummary,
   formatDateOnlyValue,
+  formatSeoulDateOnlyValue,
   nextDay,
   parseCalendarDate,
   parseYearMonthRange,
@@ -66,7 +67,7 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
   const summary: CalendarMonthSummary = {};
 
   for (const transaction of monthTransactions) {
-    const dayKey = transaction.date.toLocaleDateString("en-CA");
+    const dayKey = formatSeoulDateOnlyValue(transaction.date);
     const current = summary[dayKey] ?? buildDaySummary(dayKey);
 
     if (transaction.type === "EXPENSE") current.totalExpense += transaction.amount;

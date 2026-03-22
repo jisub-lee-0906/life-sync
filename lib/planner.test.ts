@@ -33,3 +33,27 @@ test("taskToOverviewItem preserves date-only task values across time zones", () 
 
   assert.equal(stdout, "2026-03-22");
 });
+
+test("formatSeoulDateOnlyValue preserves transaction calendar dates across server time zones", () => {
+  const stdout = execFileSync(
+    process.execPath,
+    [
+      "--import",
+      "./scripts/register-alias-loader.mjs",
+      "--input-type=module",
+      "--eval",
+      [
+        "import { formatSeoulDateOnlyValue } from './lib/planner.ts';",
+        "const transactionDate = new Date('2026-03-21T15:00:00.000Z');",
+        "process.stdout.write(formatSeoulDateOnlyValue(transactionDate));",
+      ].join(" "),
+    ],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, TZ: "America/Los_Angeles" },
+    },
+  );
+
+  assert.equal(stdout, "2026-03-22");
+});
