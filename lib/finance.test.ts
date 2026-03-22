@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   calculateMonthExpenseTotal,
+  formatTransactionDate,
   importCsvRowSchema,
   normalizeCsvUploadRow,
   normalizeQuickAddFormData,
@@ -114,4 +115,12 @@ test("quickAddTransactionSchema preserves calendar years below 0100", () => {
   assert.equal(parsed.date.getFullYear(), 99);
   assert.equal(parsed.date.getMonth(), 11);
   assert.equal(parsed.date.getDate(), 31);
+});
+
+test("formatTransactionDate preserves four-digit years below 0100", () => {
+  const date = new Date(0);
+  date.setFullYear(99, 11, 31);
+  date.setHours(0, 0, 0, 0);
+
+  assert.equal(formatTransactionDate(date), "0099-12-31");
 });

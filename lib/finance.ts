@@ -261,7 +261,7 @@ export function calculateMonthExpenseTotal(
 }
 
 export function formatTransactionDate(date: Date) {
-  const year = date.getFullYear();
+  const year = `${date.getFullYear()}`.padStart(4, "0");
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
   const day = `${date.getDate()}`.padStart(2, "0");
 
