@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import type { FullBackupPayload } from "@/lib/settings";
+import { formatTimeZoneDateOnlyValue } from "@/lib/timezone-date";
 
 export const dynamic = "force-dynamic";
 
 function buildFilenameDate() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-  }).format(new Date());
+  return formatTimeZoneDateOnlyValue(new Date(), "Asia/Seoul");
 }
 
 export async function GET() {
@@ -71,4 +70,3 @@ export async function GET() {
     },
   });
 }
-

@@ -3,6 +3,7 @@ import {
   parseValidatedCalendarDate,
   parseValidatedYearMonth,
 } from "@/lib/planner-date";
+import { formatTimeZoneDateOnlyValue } from "@/lib/timezone-date";
 
 export type CalendarDaySummary = {
   completedTasksCount: number;
@@ -149,15 +150,8 @@ export function formatDateOnlyValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-const seoulDateFormatter = new Intl.DateTimeFormat("en-CA", {
-  day: "2-digit",
-  month: "2-digit",
-  timeZone: "Asia/Seoul",
-  year: "numeric",
-});
-
 export function formatSeoulDateOnlyValue(date: Date) {
-  return seoulDateFormatter.format(date);
+  return formatTimeZoneDateOnlyValue(date, "Asia/Seoul");
 }
 
 export function taskToOverviewItem(task: {
