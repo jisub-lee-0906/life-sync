@@ -82,3 +82,20 @@ test("calculateMonthExpenseTotal only counts expenses from the requested month",
     15000,
   );
 });
+
+test("quickAddTransactionSchema preserves calendar years below 0100", () => {
+  const parsed = quickAddTransactionSchema.parse({
+    amount: 12000,
+    category: "Archive",
+    date: "0099-12-31",
+    isRecurring: false,
+    note: "",
+    recurrenceDate: null,
+    type: "EXPENSE",
+  });
+
+  assert.equal(parsed.dateString, "0099-12-31");
+  assert.equal(parsed.date.getFullYear(), 99);
+  assert.equal(parsed.date.getMonth(), 11);
+  assert.equal(parsed.date.getDate(), 31);
+});

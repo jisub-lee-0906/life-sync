@@ -34,3 +34,20 @@ test("parseValidatedYearMonth rejects year 0000", () => {
     /Invalid calendar year/,
   );
 });
+
+test("parseValidatedYearMonth preserves years below 0100", () => {
+  assert.deepEqual(parseValidatedYearMonth("0099-12"), {
+    monthIndex: 11,
+    year: 99,
+    yearMonth: "0099-12",
+  });
+});
+
+test("parseValidatedCalendarDate preserves years below 0100", () => {
+  const parsed = parseValidatedCalendarDate("0099-12-31");
+
+  assert.equal(parsed.dateString, "0099-12-31");
+  assert.equal(parsed.date.getFullYear(), 99);
+  assert.equal(parsed.date.getMonth(), 11);
+  assert.equal(parsed.date.getDate(), 31);
+});

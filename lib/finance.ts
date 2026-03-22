@@ -18,7 +18,14 @@ function parseCalendarDateString(dateString: string) {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+  if (year < 1) {
+    throw new Error("Invalid calendar date.");
+  }
+
+  const parsedDate = new Date(0);
+  parsedDate.setFullYear(year, month - 1, day);
+  parsedDate.setHours(0, 0, 0, 0);
 
   if (
     parsedDate.getFullYear() !== year ||
