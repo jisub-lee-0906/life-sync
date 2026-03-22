@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import {
   buildDaySummary,
+  formatDateOnlyValue,
   nextDay,
   parseCalendarDate,
   parseYearMonthRange,
@@ -75,7 +76,7 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
   }
 
   for (const task of monthTasks) {
-    const dayKey = task.date.toLocaleDateString("en-CA");
+    const dayKey = formatDateOnlyValue(task.date);
     const current = summary[dayKey] ?? buildDaySummary(dayKey);
     current.tasksCount += 1;
     if (task.progress >= 100) current.completedTasksCount += 1;

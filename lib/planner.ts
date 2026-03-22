@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { formatTransactionDate } from "@/lib/finance";
 import {
   parseValidatedCalendarDate,
   parseValidatedYearMonth,
@@ -142,6 +141,14 @@ export function buildDaySummary(date: string): CalendarDaySummary {
   };
 }
 
+export function formatDateOnlyValue(date: Date) {
+  const year = `${date.getUTCFullYear()}`.padStart(4, "0");
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getUTCDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export function taskToOverviewItem(task: {
   date: Date;
   id: string;
@@ -152,7 +159,7 @@ export function taskToOverviewItem(task: {
   type: string;
 }): TaskOverviewItem {
   return {
-    date: formatTransactionDate(task.date),
+    date: formatDateOnlyValue(task.date),
     id: task.id,
     priority: task.priority,
     progress: task.progress,
