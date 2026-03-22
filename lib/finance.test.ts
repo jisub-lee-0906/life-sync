@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   calculateMonthExpenseTotal,
   importCsvRowSchema,
+  normalizeQuickAddFormData,
   quickAddTransactionSchema,
 } from "./finance.ts";
 
@@ -50,6 +51,20 @@ test("importCsvRowSchema rejects blank CSV amounts instead of coercing them to z
         type: "EXPENSE",
       }),
     /Amount is required/,
+  );
+});
+
+test("normalizeQuickAddFormData preserves blank amounts so validation can reject them", () => {
+  const formData = new FormData();
+  formData.set("amount", "   ");
+  formData.set("category", "Food");
+  formData.set("date", "2026-03-22");
+  formData.set("note", "");
+  formData.set("type", "EXPENSE");
+
+  assert.throws(
+    () => quickAddTransactionSchema.parse(normalizeQuickAddFormData(formData)),
+    /expected number, received undefined/i,
   );
 });
 

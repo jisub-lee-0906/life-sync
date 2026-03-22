@@ -5,6 +5,7 @@ import {
   DEFAULT_TODO_ICON,
   resolveIconPreferences,
 } from "./settings.ts";
+import { settings } from "@/drizzle/schema";
 
 test("resolveIconPreferences falls back to the default icons", () => {
   assert.deepEqual(resolveIconPreferences(), {
@@ -24,4 +25,8 @@ test("resolveIconPreferences trims provided icons and restores blanks", () => {
       todoIcon: DEFAULT_TODO_ICON,
     },
   );
+});
+test("database defaults stay aligned with the runtime icon fallbacks", () => {
+  assert.equal(settings.scheduleIcon.default, DEFAULT_SCHEDULE_ICON);
+  assert.equal(settings.todoIcon.default, DEFAULT_TODO_ICON);
 });

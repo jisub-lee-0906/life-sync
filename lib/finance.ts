@@ -173,6 +173,34 @@ export type CsvTransactionRow = {
 };
 export type FinanceTransactionType = (typeof transactionTypeValues)[number];
 
+function parseOptionalIntegerFormValue(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+
+  return Number(trimmed);
+}
+
+export function normalizeQuickAddFormData(input: FormData) {
+  const rawRecurrenceDate = input.get("recurrenceDate");
+
+  return {
+    amount: parseOptionalIntegerFormValue(input.get("amount")),
+    category: input.get("category"),
+    date: input.get("date"),
+    isRecurring: input.get("isRecurring") === "on",
+    note: input.get("note"),
+    recurrenceDate: parseOptionalIntegerFormValue(rawRecurrenceDate),
+    type: input.get("type"),
+  };
+}
+
 export function calculateMonthExpenseTotal(
   transactions: Array<{
     amount: number;

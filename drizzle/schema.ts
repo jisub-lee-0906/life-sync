@@ -169,8 +169,8 @@ export const settings = pgTable("settings", {
     .references(() => users.id, { onDelete: "cascade" }),
   scheduleIcon: varchar("schedule_icon", { length: 32 })
     .notNull()
-    .default("schedule"),
-  todoIcon: varchar("todo_icon", { length: 32 }).notNull().default("todo"),
+    .default("🗓️"),
+  todoIcon: varchar("todo_icon", { length: 32 }).notNull().default("✅"),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({

@@ -8,6 +8,7 @@ import {
   CsvTransactionRow,
   formatTransactionDate,
   importCsvRowSchema,
+  normalizeQuickAddFormData,
   quickAddTransactionSchema,
   type QuickAddTransactionInput,
 } from "@/lib/finance";
@@ -68,19 +69,7 @@ function toViewModel(
 
 function normalizeQuickAddInput(input: FormData | QuickAddTransactionInput) {
   if (input instanceof FormData) {
-    const rawRecurrenceDate = input.get("recurrenceDate");
-    return {
-      amount: Number(input.get("amount") ?? 0),
-      category: input.get("category"),
-      date: input.get("date"),
-      isRecurring: input.get("isRecurring") === "on",
-      note: input.get("note"),
-      recurrenceDate:
-        rawRecurrenceDate === null || rawRecurrenceDate === ""
-          ? undefined
-          : Number(rawRecurrenceDate),
-      type: input.get("type"),
-    };
+    return normalizeQuickAddFormData(input);
   }
 
   return input;
