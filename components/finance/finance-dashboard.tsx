@@ -1,8 +1,12 @@
+import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getTransactions } from "@/actions/finance";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FinanceClientShell } from "@/components/finance/finance-client-shell";
+import { db } from "@/lib/db";
+import { calculateMonthExpenseTotal } from "@/lib/finance";
+import { parseYearMonthRange } from "@/lib/planner";
 
 export async function FinanceDashboard() {
   const session = await auth();
@@ -11,10 +15,22 @@ export async function FinanceDashboard() {
     redirect("/login");
   }
 
-  const initialPage = await getTransactions();
-  const monthExpenseTotal = initialPage.items
-    .filter((item) => item.type === "EXPENSE")
-    .reduce((sum, item) => sum + item.amount, 0);
+  const currentMonth = format(new Date(), "yyyy-MM");
+  const { endExclusive, start } = parseYearMonthRange(currentMonth);
+  const [initialPage, monthExpenses] = await Promise.all([
+    getTransactions(),
+    db.query.transactions.findMany({
+      columns: { amount: true, date: true, type: true },
+      where: (table, operators) =>
+        operators.and(
+          operators.eq(table.userId, session.user.id),
+          operators.eq(table.type, "EXPENSE"),
+          operators.gte(table.date, start),
+          operators.lt(table.date, endExclusive),
+        ),
+    }),
+  ]);
+  const monthExpenseTotal = calculateMonthExpenseTotal(monthExpenses, currentMonth);
 
   return (
     <div className="space-y-6">

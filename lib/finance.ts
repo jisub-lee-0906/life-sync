@@ -173,6 +173,30 @@ export type CsvTransactionRow = {
 };
 export type FinanceTransactionType = (typeof transactionTypeValues)[number];
 
+export function calculateMonthExpenseTotal(
+  transactions: Array<{
+    amount: number;
+    date: Date | string;
+    type: "INCOME" | "EXPENSE";
+  }>,
+  yearMonth: string,
+) {
+  return transactions.reduce((sum, transaction) => {
+    if (transaction.type !== "EXPENSE") {
+      return sum;
+    }
+
+    const transactionDate =
+      typeof transaction.date === "string"
+        ? transaction.date
+        : formatTransactionDate(transaction.date);
+
+    return transactionDate.startsWith(`${yearMonth}-`)
+      ? sum + transaction.amount
+      : sum;
+  }, 0);
+}
+
 export function formatTransactionDate(date: Date) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");

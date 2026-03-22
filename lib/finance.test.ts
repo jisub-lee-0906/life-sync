@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { importCsvRowSchema, quickAddTransactionSchema } from "./finance.ts";
+import {
+  calculateMonthExpenseTotal,
+  importCsvRowSchema,
+  quickAddTransactionSchema,
+} from "./finance.ts";
 
 test("quickAddTransactionSchema ignores recurrenceDate when a transaction is not recurring", () => {
   const parsed = quickAddTransactionSchema.parse({
@@ -46,5 +50,20 @@ test("importCsvRowSchema rejects blank CSV amounts instead of coercing them to z
         type: "EXPENSE",
       }),
     /Amount is required/,
+  );
+});
+
+test("calculateMonthExpenseTotal only counts expenses from the requested month", () => {
+  assert.equal(
+    calculateMonthExpenseTotal(
+      [
+        { amount: 12000, date: "2026-03-22", type: "EXPENSE" },
+        { amount: 4500, date: "2026-03-07", type: "INCOME" },
+        { amount: 8000, date: "2026-02-28", type: "EXPENSE" },
+        { amount: 3000, date: "2026-03-01", type: "EXPENSE" },
+      ],
+      "2026-03",
+    ),
+    15000,
   );
 });
