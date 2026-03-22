@@ -11,6 +11,7 @@ import {
   quickAddTransactionSchema,
   type QuickAddTransactionInput,
 } from "@/lib/finance";
+import { buildTransactionCursor } from "@/lib/transaction-cursor";
 import { transactions } from "@/drizzle/schema";
 
 export type TransactionCursor = {
@@ -134,17 +135,11 @@ export async function getTransactions(params?: {
 
   const hasMore = rows.length > limit;
   const items = rows.slice(0, limit).map(toViewModel);
-  const lastItem = items.at(-1);
+  const lastRow = rows.slice(0, limit).at(-1);
 
   return {
     items,
-    nextCursor:
-      hasMore && lastItem
-        ? {
-            date: `${lastItem.date}T00:00:00`,
-            id: lastItem.id,
-          }
-        : null,
+    nextCursor: hasMore && lastRow ? buildTransactionCursor(lastRow.date, lastRow.id) : null,
   };
 }
 
