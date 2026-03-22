@@ -3,7 +3,7 @@ import {
   parseValidatedCalendarDate,
   parseValidatedYearMonth,
 } from "@/lib/planner-date";
-import { formatTimeZoneDateOnlyValue } from "@/lib/timezone-date";
+import { formatTimeZoneDateOnlyValue, SEOUL_TIME_ZONE } from "@/lib/timezone-date";
 
 export type CalendarDaySummary = {
   completedTasksCount: number;
@@ -108,8 +108,11 @@ export const routineDaySchema = z.enum([
   "sunCheck",
 ]);
 
-function buildLocalDate(year: number, monthIndex: number, day: number) {
-  return new Date(year, monthIndex, day, 0, 0, 0, 0);
+function buildUtcDate(year: number, monthIndex: number, day: number) {
+  const date = new Date(0);
+  date.setUTCFullYear(year, monthIndex, day);
+  date.setUTCHours(0, 0, 0, 0);
+  return date;
 }
 
 export function parseYearMonthRange(value: string) {
@@ -117,8 +120,8 @@ export function parseYearMonthRange(value: string) {
   const { monthIndex, year } = parseValidatedYearMonth(yearMonth);
 
   return {
-    endExclusive: buildLocalDate(year, monthIndex + 1, 1),
-    start: buildLocalDate(year, monthIndex, 1),
+    endExclusive: buildUtcDate(year, monthIndex + 1, 1),
+    start: buildUtcDate(year, monthIndex, 1),
     yearMonth,
   };
 }
@@ -129,7 +132,7 @@ export function parseCalendarDate(value: string) {
 }
 
 export function nextDay(date: Date) {
-  return buildLocalDate(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+  return buildUtcDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1);
 }
 
 export function buildDaySummary(date: string): CalendarDaySummary {
@@ -151,7 +154,7 @@ export function formatDateOnlyValue(date: Date) {
 }
 
 export function formatSeoulDateOnlyValue(date: Date) {
-  return formatTimeZoneDateOnlyValue(date, "Asia/Seoul");
+  return formatTimeZoneDateOnlyValue(date, SEOUL_TIME_ZONE);
 }
 
 export function taskToOverviewItem(task: {

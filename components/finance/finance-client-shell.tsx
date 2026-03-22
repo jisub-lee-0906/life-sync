@@ -24,8 +24,22 @@ type FinanceClientShellProps = {
 type OptimisticAction =
   | { type: "append"; items: FinanceTransactionViewModel[]; nextCursor: TransactionCursor }
   | { type: "prepend"; item: FinanceTransactionViewModel }
+  | { type: "restore"; item: FinanceTransactionViewModel }
   | { type: "remove"; id: string }
-  | { type: "replace"; item: FinanceTransactionViewModel; tempId: string };
+;
+
+function compareTransactions(
+  left: FinanceTransactionViewModel,
+  right: FinanceTransactionViewModel,
+) {
+  const dateComparison = right.date.localeCompare(left.date);
+
+  if (dateComparison !== 0) {
+    return dateComparison;
+  }
+
+  return right.id.localeCompare(left.id);
+}
 
 function reducer(state: TransactionPage, action: OptimisticAction): TransactionPage {
   switch (action.type) {
@@ -39,17 +53,15 @@ function reducer(state: TransactionPage, action: OptimisticAction): TransactionP
         ...state,
         items: [action.item, ...state.items],
       };
+    case "restore":
+      return {
+        ...state,
+        items: [...state.items, action.item].sort(compareTransactions),
+      };
     case "remove":
       return {
         ...state,
         items: state.items.filter((item) => item.id !== action.id),
-      };
-    case "replace":
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.id === action.tempId ? action.item : item,
-        ),
       };
     default:
       return state;
@@ -112,14 +124,16 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
   }
 
   async function handleDelete(id: string) {
-    const previousItems = basePage.items;
+    const deletedItem = basePage.items.find((item) => item.id === id);
     setBasePage((current) => reducer(current, { type: "remove", id }));
 
     startTransition(async () => {
       try {
         await deleteTransaction(id);
       } catch (error) {
-        setBasePage((current) => ({ ...current, items: previousItems }));
+        if (deletedItem) {
+          setBasePage((current) => reducer(current, { type: "restore", item: deletedItem }));
+        }
         setErrorMessage(error instanceof Error ? error.message : "Failed to delete transaction.");
       }
     });

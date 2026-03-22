@@ -16,9 +16,9 @@ test("parseValidatedCalendarDate preserves valid dates", () => {
   const parsed = parseValidatedCalendarDate("2026-02-28");
 
   assert.equal(parsed.dateString, "2026-02-28");
-  assert.equal(parsed.date.getFullYear(), 2026);
-  assert.equal(parsed.date.getMonth(), 1);
-  assert.equal(parsed.date.getDate(), 28);
+  assert.equal(parsed.date.getUTCFullYear(), 2026);
+  assert.equal(parsed.date.getUTCMonth(), 1);
+  assert.equal(parsed.date.getUTCDate(), 28);
 });
 
 test("parseValidatedYearMonth rejects month 13", () => {
@@ -47,7 +47,7 @@ test("parseValidatedCalendarDate preserves years below 0100", () => {
   const parsed = parseValidatedCalendarDate("0099-12-31");
 
   assert.equal(parsed.dateString, "0099-12-31");
-  assert.equal(parsed.date.getFullYear(), 99);
-  assert.equal(parsed.date.getMonth(), 11);
-  assert.equal(parsed.date.getDate(), 31);
+  assert.equal(parsed.date.getUTCFullYear(), 99);
+  assert.equal(parsed.date.getUTCMonth(), 11);
+  assert.equal(parsed.date.getUTCDate(), 31);
 });

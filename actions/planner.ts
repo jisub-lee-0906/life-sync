@@ -8,7 +8,6 @@ import {
   buildDaySummary,
   formatDateOnlyValue,
   formatSeoulDateOnlyValue,
-  nextDay,
   parseCalendarDate,
   parseYearMonthRange,
   routineDaySchema,
@@ -21,6 +20,11 @@ import {
   type TaskCompletionDatum,
   type TaskOverviewItem,
 } from "@/lib/planner";
+import {
+  buildTimeZoneDayRange,
+  buildTimeZoneMonthRange,
+  SEOUL_TIME_ZONE,
+} from "@/lib/timezone-date";
 import { routines, tasks } from "@/drizzle/schema";
 
 async function requirePlannerUserId() {
@@ -40,7 +44,8 @@ async function requirePlannerUserId() {
 
 export async function getCalendarData(yearMonth: string): Promise<CalendarMonthSummary> {
   const userId = await requirePlannerUserId();
-  const { endExclusive, start } = parseYearMonthRange(yearMonth);
+  const { endExclusive, start } = buildTimeZoneMonthRange(yearMonth, SEOUL_TIME_ZONE);
+  const taskMonthRange = parseYearMonthRange(yearMonth);
 
   const [monthTransactions, monthTasks] = await Promise.all([
     db.query.transactions.findMany({
@@ -58,8 +63,8 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
-          operators.gte(table.date, start),
-          operators.lt(table.date, endExclusive),
+          operators.gte(table.date, taskMonthRange.start),
+          operators.lt(table.date, taskMonthRange.endExclusive),
         ),
     }),
   ]);
@@ -89,8 +94,11 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
 
 export async function getPlannerPanelData(date: string): Promise<PlannerPanelData> {
   const userId = await requirePlannerUserId();
-  const { date: dayStart, dateString } = parseCalendarDate(date);
-  const dayEnd = nextDay(dayStart);
+  const { date: taskDate, dateString } = parseCalendarDate(date);
+  const { endExclusive: transactionDayEnd, start: transactionDayStart } = buildTimeZoneDayRange(
+    dateString,
+    SEOUL_TIME_ZONE,
+  );
 
   const [dayTransactions, dayTasks] = await Promise.all([
     db.query.transactions.findMany({
@@ -99,14 +107,14 @@ export async function getPlannerPanelData(date: string): Promise<PlannerPanelDat
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
-          operators.gte(table.date, dayStart),
-          operators.lt(table.date, dayEnd),
+          operators.gte(table.date, transactionDayStart),
+          operators.lt(table.date, transactionDayEnd),
         ),
     }),
     db.query.tasks.findMany({
       orderBy: (table, { asc, desc }) => [desc(table.progress), asc(table.title)],
       where: (table, operators) =>
-        and(operators.eq(table.userId, userId), operators.eq(table.date, dayStart)),
+        and(operators.eq(table.userId, userId), operators.eq(table.date, taskDate)),
     }),
   ]);
 
@@ -158,7 +166,8 @@ export async function getAnalyticsData(yearMonth: string): Promise<{
   taskCompletion: TaskCompletionDatum;
 }> {
   const userId = await requirePlannerUserId();
-  const { endExclusive, start } = parseYearMonthRange(yearMonth);
+  const transactionMonthRange = buildTimeZoneMonthRange(yearMonth, SEOUL_TIME_ZONE);
+  const taskMonthRange = parseYearMonthRange(yearMonth);
 
   const [monthTransactions, monthTasks] = await Promise.all([
     db.query.transactions.findMany({
@@ -166,8 +175,8 @@ export async function getAnalyticsData(yearMonth: string): Promise<{
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
-          operators.gte(table.date, start),
-          operators.lt(table.date, endExclusive),
+          operators.gte(table.date, transactionMonthRange.start),
+          operators.lt(table.date, transactionMonthRange.endExclusive),
         ),
     }),
     db.query.tasks.findMany({
@@ -175,8 +184,8 @@ export async function getAnalyticsData(yearMonth: string): Promise<{
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
-          operators.gte(table.date, start),
-          operators.lt(table.date, endExclusive),
+          operators.gte(table.date, taskMonthRange.start),
+          operators.lt(table.date, taskMonthRange.endExclusive),
         ),
     }),
   ]);

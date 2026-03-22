@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import {
   CsvTransactionRow,
+  calculateMonthExpenseTotal,
   formatTransactionDate,
   importCsvRowSchema,
   normalizeQuickAddFormData,
@@ -13,6 +14,11 @@ import {
   type QuickAddTransactionInput,
 } from "@/lib/finance";
 import { buildTransactionCursor } from "@/lib/transaction-cursor";
+import {
+  buildTimeZoneMonthRange,
+  formatTimeZoneYearMonthValue,
+  SEOUL_TIME_ZONE,
+} from "@/lib/timezone-date";
 import { transactions } from "@/drizzle/schema";
 
 export type TransactionCursor = {
@@ -194,4 +200,27 @@ export async function exportTransactions() {
     recurrenceDate: row.recurrenceDate?.toString() ?? "",
     type: row.type,
   }));
+}
+
+export async function getCurrentMonthExpenseTotal(yearMonth?: string) {
+  const userId = await requireUserId();
+  const resolvedYearMonth =
+    yearMonth ?? formatTimeZoneYearMonthValue(new Date(), SEOUL_TIME_ZONE);
+  const { endExclusive, start } = buildTimeZoneMonthRange(
+    resolvedYearMonth,
+    SEOUL_TIME_ZONE,
+  );
+
+  const rows = await db.query.transactions.findMany({
+    columns: { amount: true, date: true, type: true },
+    where: (table, operators) =>
+      operators.and(
+        operators.eq(table.userId, userId),
+        operators.eq(table.type, "EXPENSE"),
+        operators.gte(table.date, start),
+        operators.lt(table.date, endExclusive),
+      ),
+  });
+
+  return calculateMonthExpenseTotal(rows, resolvedYearMonth);
 }

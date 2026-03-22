@@ -3,6 +3,7 @@ export {
   createTransaction,
   deleteTransaction,
   exportTransactions,
+  getCurrentMonthExpenseTotal,
   getTransactions,
   importCSV,
 } from "@/actions/finance";

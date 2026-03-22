@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
-import type { FullBackupPayload } from "@/lib/settings";
+import { BACKUP_PAYLOAD_VERSION, type FullBackupPayload } from "@/lib/settings";
 import { formatTimeZoneDateOnlyValue } from "@/lib/timezone-date";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,7 @@ export async function GET() {
     settings: userSettings ?? null,
     tasks,
     transactions,
-    version: "1.0",
+    version: BACKUP_PAYLOAD_VERSION,
   };
 
   return new Response(JSON.stringify(payload, null, 2), {

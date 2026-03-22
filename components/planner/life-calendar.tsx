@@ -2,7 +2,7 @@
 
 import { addMonths, eachDayOfInterval, endOfMonth, format, startOfMonth } from "date-fns";
 import { CalendarDays, CircleDollarSign, ListChecks } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { getCalendarData, getPlannerPanelData } from "@/actions/planner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export function LifeCalendar({
   const [monthSummary, setMonthSummary] = useState(initialSummary);
   const [panelData, setPanelData] = useState(initialPanelData);
   const [isPending, startTransition] = useTransition();
+  const hydratedDateRef = useRef<string | null>(initialPanelData.date);
   const selectedDate = usePlannerStore((state) => state.selectedDate);
   const isCalendarDrawerOpen = usePlannerStore((state) => state.isCalendarDrawerOpen);
   const selectDate = usePlannerStore((state) => state.selectDate);
@@ -39,6 +40,10 @@ export function LifeCalendar({
 
   useEffect(() => {
     if (!selectedDate) return;
+    if (hydratedDateRef.current === selectedDate) {
+      hydratedDateRef.current = null;
+      return;
+    }
 
     startTransition(async () => {
       const nextPanelData = await getPlannerPanelData(selectedDate);

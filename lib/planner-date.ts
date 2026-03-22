@@ -1,7 +1,7 @@
-function buildLocalDate(year: number, monthIndex: number, day: number) {
+function buildUtcDate(year: number, monthIndex: number, day: number) {
   const date = new Date(0);
-  date.setFullYear(year, monthIndex, day);
-  date.setHours(0, 0, 0, 0);
+  date.setUTCFullYear(year, monthIndex, day);
+  date.setUTCHours(0, 0, 0, 0);
   return date;
 }
 
@@ -23,9 +23,12 @@ export function parseValidatedYearMonth(value: string) {
     throw new Error("Invalid calendar month.");
   }
 
-  const monthStart = buildLocalDate(year, month - 1, 1);
+  const monthStart = buildUtcDate(year, month - 1, 1);
 
-  if (monthStart.getFullYear() !== year || monthStart.getMonth() !== month - 1) {
+  if (
+    monthStart.getUTCFullYear() !== year ||
+    monthStart.getUTCMonth() !== month - 1
+  ) {
     throw new Error("Invalid calendar year.");
   }
 
@@ -51,12 +54,12 @@ export function parseValidatedCalendarDate(value: string) {
     throw new Error("Invalid calendar date.");
   }
 
-  const date = buildLocalDate(year, month - 1, day);
+  const date = buildUtcDate(year, month - 1, day);
 
   if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
   ) {
     throw new Error("Invalid calendar date.");
   }

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import {
   calculateMonthExpenseTotal,
   formatDateInputValue,
@@ -113,9 +114,7 @@ test("quickAddTransactionSchema preserves calendar years below 0100", () => {
   });
 
   assert.equal(parsed.dateString, "0099-12-31");
-  assert.equal(parsed.date.getFullYear(), 99);
-  assert.equal(parsed.date.getMonth(), 11);
-  assert.equal(parsed.date.getDate(), 31);
+  assert.equal(formatTransactionDate(parsed.date), "0099-12-31");
 });
 
 test("formatTransactionDate preserves four-digit years below 0100", () => {
@@ -133,4 +132,50 @@ test("formatDateInputValue always returns an input-safe YYYY-MM-DD value", () =>
 
   assert.match(formatDateInputValue(date), /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(formatDateInputValue(date), "2026-03-22");
+});
+
+test("quickAddTransactionSchema stores Seoul midnight as UTC on a non-Seoul server", () => {
+  const stdout = execFileSync(
+    process.execPath,
+    [
+      "--import",
+      "./scripts/register-alias-loader.mjs",
+      "--input-type=module",
+      "--eval",
+      [
+        "import { quickAddTransactionSchema } from './lib/finance.ts';",
+        "const parsed = quickAddTransactionSchema.parse({",
+        "  amount: 1000,",
+        "  category: 'Food',",
+        "  date: '2026-03-22',",
+        "  isRecurring: false,",
+        "  note: '',",
+        "  recurrenceDate: null,",
+        "  type: 'EXPENSE',",
+        "});",
+        "process.stdout.write(parsed.date.toISOString());",
+      ].join(" "),
+    ],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, TZ: "America/Los_Angeles" },
+    },
+  );
+
+  assert.equal(stdout, "2026-03-21T15:00:00.000Z");
+});
+
+test("calculateMonthExpenseTotal uses Seoul calendar boundaries at month edges", () => {
+  assert.equal(
+    calculateMonthExpenseTotal(
+      [
+        { amount: 9000, date: new Date("2026-03-31T14:59:59.000Z"), type: "EXPENSE" },
+        { amount: 4000, date: new Date("2026-03-31T15:00:00.000Z"), type: "EXPENSE" },
+        { amount: 1200, date: new Date("2026-03-01T00:00:00.000Z"), type: "INCOME" },
+      ],
+      "2026-03",
+    ),
+    9000,
+  );
 });

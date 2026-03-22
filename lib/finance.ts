@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { insertTransactionSchema } from "@/schemas";
+import {
+  formatTimeZoneDateOnlyValue,
+  SEOUL_TIME_ZONE,
+  parseTimeZoneDateOnlyToUtc,
+} from "@/lib/timezone-date";
 
 export const transactionTypeValues = ["INCOME", "EXPENSE"] as const;
 
@@ -9,33 +14,7 @@ const calendarDateStringSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format.");
 
 function parseCalendarDateString(dateString: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
-
-  if (!match) {
-    throw new Error("Invalid date format.");
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-
-  if (year < 1) {
-    throw new Error("Invalid calendar date.");
-  }
-
-  const parsedDate = new Date(0);
-  parsedDate.setFullYear(year, month - 1, day);
-  parsedDate.setHours(0, 0, 0, 0);
-
-  if (
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    throw new Error("Invalid calendar date.");
-  }
-
-  return parsedDate;
+  return parseTimeZoneDateOnlyToUtc(dateString, SEOUL_TIME_ZONE);
 }
 
 function validateRecurrenceDate(
@@ -265,9 +244,5 @@ export function formatDateInputValue(date: Date) {
 }
 
 export function formatTransactionDate(date: Date) {
-  const year = `${date.getFullYear()}`.padStart(4, "0");
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return formatTimeZoneDateOnlyValue(date, SEOUL_TIME_ZONE);
 }

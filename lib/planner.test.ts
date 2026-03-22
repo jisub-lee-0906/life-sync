@@ -57,3 +57,36 @@ test("formatSeoulDateOnlyValue preserves transaction calendar dates across serve
 
   assert.equal(stdout, "2026-03-22");
 });
+
+test("Seoul day-detail query boundaries match the calendar summary bucket", () => {
+  const stdout = execFileSync(
+    process.execPath,
+    [
+      "--import",
+      "./scripts/register-alias-loader.mjs",
+      "--input-type=module",
+      "--eval",
+      [
+        "import { formatSeoulDateOnlyValue } from './lib/planner.ts';",
+        "import { buildTimeZoneDayRange } from './lib/timezone-date.ts';",
+        "const range = buildTimeZoneDayRange('2026-03-22', 'Asia/Seoul');",
+        "const insideDay = new Date(range.start.getTime() + 60 * 60 * 1000);",
+        "const endOfDay = new Date(range.endExclusive.getTime() - 1);",
+        "process.stdout.write(JSON.stringify({",
+        "  inside: formatSeoulDateOnlyValue(insideDay),",
+        "  endOfDay: formatSeoulDateOnlyValue(endOfDay),",
+        "}));",
+      ].join(" "),
+    ],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: { ...process.env, TZ: "America/Los_Angeles" },
+    },
+  );
+
+  assert.deepEqual(JSON.parse(stdout), {
+    endOfDay: "2026-03-22",
+    inside: "2026-03-22",
+  });
+});

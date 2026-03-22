@@ -9,9 +9,10 @@ export const iconPreferencesSchema = z.object({
 });
 
 export type IconPreferencesInput = z.infer<typeof iconPreferencesSchema>;
+export const BACKUP_PAYLOAD_VERSION = "1.2";
 
 export type FullBackupPayload = {
-  version: "1.0";
+  version: typeof BACKUP_PAYLOAD_VERSION;
   exportedAt: string;
   mandalarts: Array<{
     cells: Array<{

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type PropsWithChildren, useContext, useState } from "react";
+import { createContext, createElement, type PropsWithChildren, useContext, useRef } from "react";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import { useStore } from "zustand";
 
@@ -16,7 +16,7 @@ type PlannerStore = PlannerStoreState & {
   selectMandalartCell: (cellId: string | null) => void;
 };
 
-function createPlannerStore(initialState?: Partial<PlannerStoreState>) {
+export function createPlannerStore(initialState?: Partial<PlannerStoreState>) {
   return createStore<PlannerStore>((set) => ({
     closeCalendarDrawer: () => set({ isCalendarDrawerOpen: false }),
     isCalendarDrawerOpen: initialState?.isCalendarDrawerOpen ?? false,
@@ -37,12 +37,19 @@ export function PlannerStoreProvider({
   children,
   initialState,
 }: PropsWithChildren<{ initialState?: Partial<PlannerStoreState> }>) {
-  const [store] = useState(() => createPlannerStore(initialState));
+  const storeRef = useRef<StoreApi<PlannerStore> | null>(null);
 
-  return (
-    <PlannerStoreContext.Provider value={store}>
-      {children}
-    </PlannerStoreContext.Provider>
+  if (storeRef.current === null) {
+    storeRef.current = createPlannerStore(initialState);
+  }
+
+  // eslint-disable-next-line react-hooks/refs
+  const store = storeRef.current;
+
+  return createElement(
+    PlannerStoreContext.Provider,
+    { value: store },
+    children,
   );
 }
 
