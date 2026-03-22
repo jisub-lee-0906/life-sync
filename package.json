@@ -8,6 +8,7 @@
     "postbuild": "node scripts/prepare-standalone.mjs",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
+    "test": "node --import ./scripts/register-alias-loader.mjs --test lib/*.test.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
