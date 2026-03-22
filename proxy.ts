@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { buildLoginCallbackUrl } from "@/lib/auth-redirect";
+import { buildLoginCallbackUrl, buildRequestUrl } from "@/lib/auth-redirect";
 
 const publicRoutes = new Set(["/login", "/pending", "/denied"]);
 
@@ -12,7 +12,7 @@ export default auth((req) => {
   const role = session?.user?.role;
 
   if (!session?.user) {
-    const loginUrl = new URL("/login", nextUrl);
+    const loginUrl = buildRequestUrl(req, "/login");
     loginUrl.searchParams.set(
       "callbackUrl",
       buildLoginCallbackUrl(pathname, nextUrl.search),
@@ -21,19 +21,19 @@ export default auth((req) => {
   }
 
   if (pathname.startsWith("/settings/admin") && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/finance", nextUrl));
+    return NextResponse.redirect(buildRequestUrl(req, "/finance"));
   }
 
   if (status === "PENDING" && !publicRoutes.has(pathname)) {
-    return NextResponse.redirect(new URL("/pending", nextUrl));
+    return NextResponse.redirect(buildRequestUrl(req, "/pending"));
   }
 
   if (status === "REJECTED" && !publicRoutes.has(pathname)) {
-    return NextResponse.redirect(new URL("/denied", nextUrl));
+    return NextResponse.redirect(buildRequestUrl(req, "/denied"));
   }
 
   if (status === "APPROVED" && (pathname === "/pending" || pathname === "/denied")) {
-    return NextResponse.redirect(new URL("/finance", nextUrl));
+    return NextResponse.redirect(buildRequestUrl(req, "/finance"));
   }
 
   return NextResponse.next();
