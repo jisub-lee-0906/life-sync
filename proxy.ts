@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { buildLoginCallbackUrl } from "@/lib/auth-redirect";
 
 const publicRoutes = new Set(["/login", "/pending", "/denied"]);
 
@@ -12,7 +13,10 @@ export default auth((req) => {
 
   if (!session?.user) {
     const loginUrl = new URL("/login", nextUrl);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      buildLoginCallbackUrl(pathname, nextUrl.search),
+    );
     return NextResponse.redirect(loginUrl);
   }
 

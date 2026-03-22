@@ -1,3 +1,7 @@
+export function buildLoginCallbackUrl(pathname: string, search: string) {
+  return `${pathname}${search}`;
+}
+
 export function resolveLoginRedirectTarget(
   callbackUrl: string | string[] | undefined,
 ) {
