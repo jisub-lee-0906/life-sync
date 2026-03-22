@@ -27,3 +27,10 @@ test("parseValidatedYearMonth rejects month 13", () => {
     /Invalid calendar month/,
   );
 });
+
+test("parseValidatedYearMonth rejects year 0000", () => {
+  assert.throws(
+    () => parseValidatedYearMonth("0000-01"),
+    /Invalid calendar year/,
+  );
+});

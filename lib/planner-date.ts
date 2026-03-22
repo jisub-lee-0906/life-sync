@@ -16,6 +16,12 @@ export function parseValidatedYearMonth(value: string) {
     throw new Error("Invalid calendar month.");
   }
 
+  const monthStart = buildLocalDate(year, month - 1, 1);
+
+  if (monthStart.getFullYear() !== year || monthStart.getMonth() !== month - 1) {
+    throw new Error("Invalid calendar year.");
+  }
+
   return {
     monthIndex: month - 1,
     year,
