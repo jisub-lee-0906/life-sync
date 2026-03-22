@@ -31,17 +31,32 @@ function parseCalendarDateString(dateString: string) {
   return parsedDate;
 }
 
+function validateRecurrenceDate(
+  value: { isRecurring: boolean; recurrenceDate?: number | null },
+  ctx: z.RefinementCtx,
+) {
+  if (!value.isRecurring || value.recurrenceDate == null) {
+    return;
+  }
+
+  if (value.recurrenceDate < 1 || value.recurrenceDate > 31) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Recurring transactions must use a repeat day between 1 and 31.",
+      path: ["recurrenceDate"],
+    });
+  }
+}
+
 export const quickAddTransactionFormSchema = z.object({
   amount: z.number().int().min(0),
   category: z.string().trim().min(1).max(120),
   date: calendarDateStringSchema,
   isRecurring: z.boolean(),
   note: z.string().trim().max(1000),
-  recurrenceDate: z
-    .union([z.number().int().min(1).max(31), z.null(), z.undefined()])
-    .optional(),
+  recurrenceDate: z.union([z.number().int(), z.null(), z.undefined()]).optional(),
   type: z.enum(transactionTypeValues),
-});
+}).superRefine(validateRecurrenceDate);
 
 export const quickAddTransactionSchema = insertTransactionSchema
   .omit({
@@ -57,6 +72,7 @@ export const quickAddTransactionSchema = insertTransactionSchema
     recurrenceDate: quickAddTransactionFormSchema.shape.recurrenceDate,
     type: quickAddTransactionFormSchema.shape.type,
   })
+  .superRefine(validateRecurrenceDate)
   .transform((value) => {
     const isRecurring = value.isRecurring ?? false;
     const normalizedNote = value.note?.trim() || null;
