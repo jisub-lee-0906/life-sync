@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
-import type { CsvTransactionRow } from "@/lib/finance";
+import { normalizeCsvUploadRow, type CsvTransactionRow } from "@/lib/finance";
 
 type CsvUploaderProps = {
   disabled?: boolean;
@@ -11,16 +11,6 @@ type CsvUploaderProps = {
 };
 
 type ParsedCsvRow = Record<string, string | undefined>;
-
-const requiredHeaders = [
-  "date",
-  "type",
-  "category",
-  "amount",
-  "note",
-  "isRecurring",
-  "recurrenceDate",
-] as const;
 
 export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -35,23 +25,7 @@ export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
       });
     });
 
-    const rows = parsed.map((row) => {
-      for (const header of requiredHeaders) {
-        if (!(header in row)) {
-          throw new Error(`CSV must include the '${header}' header.`);
-        }
-      }
-
-      return {
-        amount: row.amount?.replace(/,/g, "") ?? "0",
-        category: row.category?.trim() ?? "",
-        date: row.date?.trim() ?? "",
-        isRecurring: row.isRecurring?.trim() ?? "false",
-        note: row.note?.trim() ?? "",
-        recurrenceDate: row.recurrenceDate?.trim() ?? "",
-        type: row.type?.trim().toUpperCase() ?? "",
-      } satisfies CsvTransactionRow;
-    });
+    const rows = parsed.map((row) => normalizeCsvUploadRow(row));
 
     await onImport(rows);
   }

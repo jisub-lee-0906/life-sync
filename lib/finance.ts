@@ -167,6 +167,16 @@ export const csvHeaderSchema = z.object({
   type: z.string(),
 });
 
+const requiredCsvHeaders = [
+  "date",
+  "type",
+  "category",
+  "amount",
+  "note",
+  "isRecurring",
+  "recurrenceDate",
+] as const;
+
 export type QuickAddTransactionInput = z.infer<typeof quickAddTransactionFormSchema>;
 export type NormalizedTransactionInput = z.output<typeof quickAddTransactionSchema>;
 export type CsvTransactionRow = {
@@ -179,6 +189,24 @@ export type CsvTransactionRow = {
   type: string;
 };
 export type FinanceTransactionType = (typeof transactionTypeValues)[number];
+
+export function normalizeCsvUploadRow(row: Record<string, string | undefined>) {
+  for (const header of requiredCsvHeaders) {
+    if (!(header in row)) {
+      throw new Error(`CSV must include the '${header}' header.`);
+    }
+  }
+
+  return {
+    amount: row.amount?.replace(/,/g, "") ?? "",
+    category: row.category?.trim() ?? "",
+    date: row.date?.trim() ?? "",
+    isRecurring: row.isRecurring?.trim() ?? "false",
+    note: row.note?.trim() ?? "",
+    recurrenceDate: row.recurrenceDate?.trim() ?? "",
+    type: row.type?.trim().toUpperCase() ?? "",
+  } satisfies CsvTransactionRow;
+}
 
 function parseOptionalIntegerFormValue(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
