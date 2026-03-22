@@ -5,6 +5,16 @@ type RequestUrlSource = {
   };
 };
 
+const defaultLoginRedirectTarget = "/finance";
+const protectedRedirectPrefixes = [
+  "/finance",
+  "/calendar",
+  "/todo-routine",
+  "/mandalart",
+  "/analytics",
+  "/settings",
+] as const;
+
 export function buildLoginCallbackUrl(pathname: string, search: string) {
   return `${pathname}${search}`;
 }
@@ -35,11 +45,20 @@ export function resolveLoginRedirectTarget(
   const normalizedValue = rawValue?.trim();
 
   if (!normalizedValue || !normalizedValue.startsWith("/")) {
-    return "/finance";
+    return defaultLoginRedirectTarget;
   }
 
   if (normalizedValue.startsWith("//")) {
-    return "/finance";
+    return defaultLoginRedirectTarget;
+  }
+
+  const pathname = normalizedValue.split(/[?#]/, 1)[0] ?? "";
+  const isProtectedRoute = protectedRedirectPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+  if (!isProtectedRoute) {
+    return defaultLoginRedirectTarget;
   }
 
   return normalizedValue;

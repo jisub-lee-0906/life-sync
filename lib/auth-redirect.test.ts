@@ -19,6 +19,10 @@ test("rejects protocol-relative callback targets", () => {
   assert.equal(resolveLoginRedirectTarget("//evil.example"), "/finance");
 });
 
+test("rejects public callback targets like login", () => {
+  assert.equal(resolveLoginRedirectTarget("/login?callbackUrl=/settings"), "/finance");
+});
+
 test("preserves the original search params in the callback target", () => {
   assert.equal(
     buildLoginCallbackUrl("/finance", "?range=month&view=chart"),
