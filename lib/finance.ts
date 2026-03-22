@@ -260,6 +260,10 @@ export function calculateMonthExpenseTotal(
   }, 0);
 }
 
+export function formatDateInputValue(date: Date) {
+  return formatTransactionDate(date);
+}
+
 export function formatTransactionDate(date: Date) {
   const year = `${date.getFullYear()}`.padStart(4, "0");
   const month = `${date.getMonth() + 1}`.padStart(2, "0");

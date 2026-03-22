@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
+  formatDateInputValue,
   quickAddTransactionFormSchema,
   type QuickAddTransactionInput,
 } from "@/lib/finance";
@@ -19,7 +20,7 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
     defaultValues: {
       amount: 0,
       category: "",
-      date: new Date().toLocaleDateString("en-CA"),
+      date: formatDateInputValue(new Date()),
       isRecurring: false,
       note: "",
       recurrenceDate: undefined,
@@ -47,7 +48,7 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
         form.reset({
           amount: 0,
           category: "",
-          date: new Date().toLocaleDateString("en-CA"),
+          date: formatDateInputValue(new Date()),
           isRecurring: false,
           note: "",
           recurrenceDate: undefined,

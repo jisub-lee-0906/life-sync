@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   calculateMonthExpenseTotal,
+  formatDateInputValue,
   formatTransactionDate,
   importCsvRowSchema,
   normalizeCsvUploadRow,
@@ -123,4 +124,13 @@ test("formatTransactionDate preserves four-digit years below 0100", () => {
   date.setHours(0, 0, 0, 0);
 
   assert.equal(formatTransactionDate(date), "0099-12-31");
+});
+
+test("formatDateInputValue always returns an input-safe YYYY-MM-DD value", () => {
+  const date = new Date(0);
+  date.setFullYear(2026, 2, 22);
+  date.setHours(0, 0, 0, 0);
+
+  assert.match(formatDateInputValue(date), /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(formatDateInputValue(date), "2026-03-22");
 });
