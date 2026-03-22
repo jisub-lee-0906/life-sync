@@ -10,7 +10,7 @@ export type DashboardRouteDefinition = {
 };
 
 const fallbackRouteMeta: DashboardRouteMeta = {
-  description: "Dashboard",
+  description: "오늘의 흐름",
   label: "LifeSync",
 };
 
@@ -19,56 +19,56 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/settings/admin",
     mobilePrimary: false,
     meta: {
-      description: "Pending approvals",
-      label: "Admin",
+      description: "가입 승인 관리",
+      label: "관리",
     },
   },
   {
     href: "/finance",
     mobilePrimary: true,
     meta: {
-      description: "Finance tracking",
-      label: "Finance",
+      description: "이번 달 수입과 지출",
+      label: "가계부",
     },
   },
   {
     href: "/calendar",
     mobilePrimary: true,
     meta: {
-      description: "Life calendar",
-      label: "Calendar",
+      description: "하루 일정과 내역",
+      label: "캘린더",
     },
   },
   {
     href: "/todo-routine",
     mobilePrimary: true,
     meta: {
-      description: "Tasks and routines",
-      label: "Todo & Routine",
+      description: "할 일과 루틴 체크",
+      label: "할 일·루틴",
     },
   },
   {
     href: "/mandalart",
     mobilePrimary: true,
     meta: {
-      description: "Goal board",
-      label: "Mandalart",
+      description: "목표를 한눈에",
+      label: "만다라트",
     },
   },
   {
     href: "/analytics",
     mobilePrimary: false,
     meta: {
-      description: "Analytics and trends",
-      label: "Analytics",
+      description: "지출과 달성률 보기",
+      label: "분석",
     },
   },
   {
     href: "/settings",
     mobilePrimary: true,
     meta: {
-      description: "Preferences and backup",
-      label: "Settings",
+      description: "취향과 백업 관리",
+      label: "설정",
     },
   },
 ];

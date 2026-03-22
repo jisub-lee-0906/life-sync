@@ -103,7 +103,7 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
         applyOptimistic({ type: "remove", id: tempId });
       } catch (error) {
         applyOptimistic({ type: "remove", id: tempId });
-        setErrorMessage(error instanceof Error ? error.message : "Failed to create transaction.");
+        setErrorMessage(error instanceof Error ? error.message : "내역을 저장하지 못했어요.");
       }
     });
   }
@@ -118,7 +118,7 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
         const nextPage = await getTransactions({ cursor: basePage.nextCursor });
         setBasePage((current) => reducer(current, { type: "append", ...nextPage }));
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Failed to load more transactions.");
+        setErrorMessage(error instanceof Error ? error.message : "내역을 더 불러오지 못했어요.");
       }
     });
   }
@@ -134,7 +134,7 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
         if (deletedItem) {
           setBasePage((current) => reducer(current, { type: "restore", item: deletedItem }));
         }
-        setErrorMessage(error instanceof Error ? error.message : "Failed to delete transaction.");
+        setErrorMessage(error instanceof Error ? error.message : "내역을 삭제하지 못했어요.");
       }
     });
   }
@@ -148,7 +148,7 @@ export function FinanceClientShell({ initialPage }: FinanceClientShellProps) {
         const refreshed = await getTransactions();
         setBasePage(refreshed);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Failed to import CSV.");
+        setErrorMessage(error instanceof Error ? error.message : "CSV를 불러오지 못했어요.");
       }
     });
   }

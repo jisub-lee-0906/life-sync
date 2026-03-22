@@ -54,7 +54,7 @@ export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >
-        Import CSV
+        CSV 가져오기
       </Button>
     </div>
   );

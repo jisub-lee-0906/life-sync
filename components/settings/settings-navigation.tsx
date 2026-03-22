@@ -12,14 +12,14 @@ type SettingsNavigationProps = {
 
 const baseItems = [
   {
-    description: "Customize planner and todo icons.",
+    description: "아이콘과 기본 취향을 바꿔요.",
     href: "/settings",
-    label: "Preferences",
+    label: "기본 설정",
   },
   {
-    description: "Download a full JSON backup.",
+    description: "내 데이터를 파일로 저장해요.",
     href: "/settings#data-backup",
-    label: "Data & Backup",
+    label: "백업",
   },
 ];
 
@@ -30,9 +30,9 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
     ? [
         ...baseItems,
         {
-          description: "Review pending user approvals.",
+          description: "가입 요청을 확인하고 처리해요.",
           href: "/settings/admin",
-          label: "Admin",
+          label: "관리",
         },
       ]
     : baseItems;
@@ -60,16 +60,16 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "block min-h-11 rounded-2xl border px-4 py-3 transition",
+              "block min-h-11 rounded-3xl bg-white px-4 py-4 shadow-sm transition-all duration-200",
               active
-                ? "border-transparent bg-sidebar-primary text-sidebar-primary-foreground"
-                : "hover:border-border hover:bg-muted/40",
+                ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                : "hover:bg-slate-50",
             )}
           >
             <p className="text-sm font-semibold">{item.label}</p>
             <p
               className={cn(
-                "mt-1 text-xs",
+                "mt-1 text-xs leading-5",
                 active ? "text-sidebar-primary-foreground/80" : "text-muted-foreground",
               )}
             >

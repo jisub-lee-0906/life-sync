@@ -32,7 +32,7 @@ export default async function SettingsPage() {
     <div className="space-y-5 sm:space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Preferences</CardTitle>
+          <CardTitle>기본 설정</CardTitle>
         </CardHeader>
         <CardContent>
           <IconPreferencesForm initialValues={initialValues} />
@@ -41,7 +41,7 @@ export default async function SettingsPage() {
 
       <Card id="data-backup">
         <CardHeader>
-          <CardTitle>Data & Backup</CardTitle>
+          <CardTitle>데이터 백업</CardTitle>
         </CardHeader>
         <CardContent>
           <DataBackupPanel disabled={!hasDatabaseUrl} />

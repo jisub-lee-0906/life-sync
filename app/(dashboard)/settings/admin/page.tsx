@@ -14,6 +14,12 @@ import { db, hasDatabaseUrl } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+const userStatusLabel = {
+  APPROVED: "승인됨",
+  PENDING: "승인 대기",
+  REJECTED: "거절됨",
+} as const;
+
 export default async function SettingsAdminPage() {
   const session = await auth();
 
@@ -36,29 +42,33 @@ export default async function SettingsAdminPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Admin approvals</CardTitle>
+          <CardTitle>가입 요청 관리</CardTitle>
           <CardDescription>
-            Review newly registered users and update their access status.
+            새로 가입한 사용자를 확인하고 상태를 바로 바꿀 수 있어요.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!hasDatabaseUrl ? (
             <p className="text-sm text-muted-foreground">
-              DATABASE_URL is not configured yet, so pending users cannot be loaded in this environment.
+              지금 환경에서는 가입 대기 목록을 불러올 수 없어요.
             </p>
           ) : pendingUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No pending users right now.</p>
+            <p className="text-sm text-muted-foreground">
+              지금은 승인 대기 중인 사용자가 없어요.
+            </p>
           ) : (
             <div className="space-y-3">
               {pendingUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
+                  className="flex flex-col gap-3 rounded-3xl bg-slate-50 p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium">{user.name}</p>
-                      <Badge variant="outline">{user.status}</Badge>
+                      <p className="font-medium text-slate-800">{user.name}</p>
+                      <Badge variant="outline">
+                        {userStatusLabel[user.status as keyof typeof userStatusLabel] ?? user.status}
+                      </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
@@ -69,7 +79,7 @@ export default async function SettingsAdminPage() {
                         await approveUser(user.id);
                       }}
                     >
-                      <Button type="submit">Approve</Button>
+                      <Button type="submit">승인</Button>
                     </form>
                     <form
                       action={async () => {
@@ -78,7 +88,7 @@ export default async function SettingsAdminPage() {
                       }}
                     >
                       <Button type="submit" variant="outline">
-                        Reject
+                        거절
                       </Button>
                     </form>
                   </div>

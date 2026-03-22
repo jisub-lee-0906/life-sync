@@ -20,11 +20,11 @@ export async function FinanceDashboard() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-[linear-gradient(180deg,#ffffff,#f8fbff)]">
         <CardHeader>
-          <CardTitle>이번 달 총 지출은 {monthExpenseTotal.toLocaleString("ko-KR")}원이에요</CardTitle>
+          <CardTitle>이번 달 지출은 {monthExpenseTotal.toLocaleString("ko-KR")}원이에요</CardTitle>
           <CardDescription>
-            빠른 입력, 사용자 격리 CRUD, 무한 스크롤, CSV 이관까지 이 화면에서 처리합니다.
+            내역 추가부터 CSV 가져오기까지, 필요한 작업을 이 화면에서 바로 할 수 있어요.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -8,7 +8,7 @@ import {
 test("parseValidatedCalendarDate rejects impossible dates", () => {
   assert.throws(
     () => parseValidatedCalendarDate("2026-02-31"),
-    /Invalid calendar date/,
+    /날짜를 다시 확인해 주세요/,
   );
 });
 
@@ -24,14 +24,14 @@ test("parseValidatedCalendarDate preserves valid dates", () => {
 test("parseValidatedYearMonth rejects month 13", () => {
   assert.throws(
     () => parseValidatedYearMonth("2026-13"),
-    /Invalid calendar month/,
+    /월을 다시 확인해 주세요/,
   );
 });
 
 test("parseValidatedYearMonth rejects year 0000", () => {
   assert.throws(
     () => parseValidatedYearMonth("0000-01"),
-    /Invalid calendar year/,
+    /연도를 다시 확인해 주세요/,
   );
 });
 

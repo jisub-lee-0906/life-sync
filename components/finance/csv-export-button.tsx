@@ -37,12 +37,12 @@ export function CsvExportButton({ disabled, onExport }: CsvExportButtonProps) {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = "transactions.csv";
+        anchor.download = "lifesync-가계부.csv";
         anchor.click();
         URL.revokeObjectURL(url);
       }}
     >
-      Export CSV
+      CSV 내보내기
     </Button>
   );
 }

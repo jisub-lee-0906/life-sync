@@ -19,15 +19,16 @@ test("resolveIconPreferences falls back to the default icons", () => {
 test("resolveIconPreferences trims provided icons and restores blanks", () => {
   assert.deepEqual(
     resolveIconPreferences({
-      scheduleIcon: "  📅  ",
+      scheduleIcon: "  🗓️  ",
       todoIcon: "   ",
     }),
     {
-      scheduleIcon: "📅",
+      scheduleIcon: "🗓️",
       todoIcon: DEFAULT_TODO_ICON,
     },
   );
 });
+
 test("database defaults stay aligned with the runtime icon fallbacks", () => {
   assert.equal(settings.scheduleIcon.default, DEFAULT_SCHEDULE_ICON);
   assert.equal(settings.todoIcon.default, DEFAULT_TODO_ICON);

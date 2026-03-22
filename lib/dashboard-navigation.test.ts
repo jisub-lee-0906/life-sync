@@ -15,7 +15,7 @@ test("keeps unrelated dashboard routes inactive", () => {
 
 test("returns admin metadata for the admin settings page", () => {
   assert.deepEqual(getDashboardRouteMeta("/settings/admin"), {
-    description: "Pending approvals",
-    label: "Admin",
+    description: "가입 승인 관리",
+    label: "관리",
   });
 });

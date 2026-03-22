@@ -4,8 +4,8 @@ export const DEFAULT_SCHEDULE_ICON = "🗓️";
 export const DEFAULT_TODO_ICON = "✅";
 
 export const iconPreferencesSchema = z.object({
-  scheduleIcon: z.string().trim().min(1).max(10),
-  todoIcon: z.string().trim().min(1).max(10),
+  scheduleIcon: z.string().trim().min(1, "아이콘을 입력해 주세요.").max(10, "아이콘이 너무 길어요."),
+  todoIcon: z.string().trim().min(1, "아이콘을 입력해 주세요.").max(10, "아이콘이 너무 길어요."),
 });
 
 export type IconPreferencesInput = z.infer<typeof iconPreferencesSchema>;

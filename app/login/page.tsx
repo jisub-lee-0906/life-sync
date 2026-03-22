@@ -11,9 +11,9 @@ export default async function LoginPage(props: PageProps<"/login">) {
     <main className="flex min-h-[100dvh] items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <CardTitle>로그인</CardTitle>
           <CardDescription>
-            Continue with Google to access the LifeSync dashboard.
+            구글 계정으로 로그인하고 LifeSync를 바로 시작해 보세요.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -24,7 +24,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
             }}
           >
             <Button type="submit" className="w-full">
-              Sign in with Google
+              구글로 계속하기
             </Button>
           </form>
         </CardContent>

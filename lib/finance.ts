@@ -11,7 +11,7 @@ export const transactionTypeValues = ["INCOME", "EXPENSE"] as const;
 const calendarDateStringSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format.");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식을 확인해 주세요.");
 
 function parseCalendarDateString(dateString: string) {
   return parseTimeZoneDateOnlyToUtc(dateString, SEOUL_TIME_ZONE);
@@ -28,7 +28,7 @@ function validateRecurrenceDate(
   if (value.recurrenceDate < 1 || value.recurrenceDate > 31) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Recurring transactions must use a repeat day between 1 and 31.",
+      message: "반복일은 1일부터 31일 사이로 입력해 주세요.",
       path: ["recurrenceDate"],
     });
   }
@@ -83,13 +83,13 @@ export const csvTransactionRowSchema = z.object({
       typeof value === "string" ? value.replace(/,/g, "").trim() : String(value);
 
     if (sanitized.length === 0) {
-      throw new Error("Amount is required.");
+      throw new Error("금액은 필수 항목이에요.");
     }
 
     const numericValue = Number(sanitized);
 
     if (!Number.isFinite(numericValue) || numericValue < 0) {
-      throw new Error("Amount must be a non-negative number.");
+      throw new Error("금액은 0원 이상으로 입력해 주세요.");
     }
 
     return Math.trunc(numericValue);
@@ -116,7 +116,7 @@ export const csvTransactionRowSchema = z.object({
       if (value === null || value === undefined || value === "") return null;
       const numericValue = Number(value);
       if (!Number.isFinite(numericValue)) {
-        throw new Error("recurrenceDate must be numeric.");
+        throw new Error("반복일은 숫자로 입력해 주세요.");
       }
       return Math.trunc(numericValue);
     })
@@ -172,7 +172,7 @@ export type FinanceTransactionType = (typeof transactionTypeValues)[number];
 export function normalizeCsvUploadRow(row: Record<string, string | undefined>) {
   for (const header of requiredCsvHeaders) {
     if (!(header in row)) {
-      throw new Error(`CSV must include the '${header}' header.`);
+      throw new Error(`CSV 파일에 '${header}' 항목이 필요해요.`);
     }
   }
 

@@ -11,11 +11,11 @@ async function requireSettingsUserId() {
   const userId = session?.user?.id;
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    throw new Error("로그인이 필요해요.");
   }
 
   if (!hasDatabaseUrl) {
-    throw new Error("Database connection is not configured.");
+    throw new Error("데이터베이스 연결을 확인해 주세요.");
   }
 
   return userId;

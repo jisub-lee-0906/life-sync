@@ -69,7 +69,7 @@ function DrawerContent({
           <DrawerPrimitive.Close
             data-slot="drawer-close"
             asChild
-            aria-label="Close drawer"
+            aria-label="닫기"
           >
             <Button type="button" variant="ghost" size="icon-sm" className="absolute top-3 right-3">
               <XIcon />

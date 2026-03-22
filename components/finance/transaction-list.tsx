@@ -31,10 +31,10 @@ export function TransactionList({
   }, [hasMore, inView, isLoadingMore, onLoadMore]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {items.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-          No transactions yet. Add your first record above or import a CSV.
+        <p className="rounded-3xl bg-white p-8 text-sm leading-6 text-muted-foreground shadow-sm">
+          아직 내역이 없어요. 위에서 바로 추가하거나 CSV를 불러와 보세요.
         </p>
       ) : (
         items.map((item) => (
@@ -46,7 +46,7 @@ export function TransactionList({
 
       {hasMore ? (
         <p className="text-center text-sm text-muted-foreground">
-          {isLoadingMore ? "Loading more..." : "Scroll to load more"}
+          {isLoadingMore ? "내역을 더 불러오는 중이에요" : "아래로 내려서 더 볼 수 있어요"}
         </p>
       ) : null}
     </div>

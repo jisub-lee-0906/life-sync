@@ -15,11 +15,11 @@ export default async function SettingsLayout({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
-      <aside className="rounded-3xl border bg-background/70 p-4">
+      <aside className="rounded-3xl bg-slate-50 p-4">
         <div className="mb-4 space-y-1">
-          <p className="text-sm font-semibold">Settings hub</p>
+          <p className="text-sm font-semibold">설정</p>
           <p className="text-sm text-muted-foreground">
-            Preferences, backup, and admin tools live here.
+            취향 설정과 백업, 관리 기능을 모아뒀어요.
           </p>
         </div>
         <SettingsNavigation isAdmin={session.user.role === "ADMIN"} />

@@ -38,7 +38,7 @@ test("quickAddTransactionSchema still validates repeat day for recurring transac
         recurrenceDate: 99,
         type: "EXPENSE",
       }),
-    /repeat day between 1 and 31/,
+    /반복일은 1일부터 31일 사이로 입력해 주세요/,
   );
 });
 
@@ -54,7 +54,7 @@ test("importCsvRowSchema rejects blank CSV amounts instead of coercing them to z
         recurrenceDate: null,
         type: "EXPENSE",
       }),
-    /Amount is required/,
+    /금액은 필수 항목이에요/,
   );
 });
 

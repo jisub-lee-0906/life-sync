@@ -63,85 +63,87 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
     setIsDrawerOpen(false);
   }
 
-  const validationMessage = Object.values(form.formState.errors)[0]?.message as string | undefined;
+  const validationMessage = Object.values(form.formState.errors)[0]?.message as
+    | string
+    | undefined;
 
   const formFields = (
     <>
       <label className="flex flex-col gap-2 text-sm">
-        <span>Date</span>
+        <span>날짜</span>
         <input
           type="date"
           {...form.register("date")}
-          className="min-h-11 rounded-xl border px-3 py-2"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
         />
       </label>
 
       <label className="flex flex-col gap-2 text-sm">
-        <span>Type</span>
+        <span>구분</span>
         <select
           {...form.register("type")}
-          className="min-h-11 rounded-xl border px-3 py-2"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
         >
-          <option value="EXPENSE">Expense</option>
-          <option value="INCOME">Income</option>
+          <option value="EXPENSE">지출</option>
+          <option value="INCOME">수입</option>
         </select>
       </label>
 
       <label className="flex flex-col gap-2 text-sm">
-        <span>Category</span>
+        <span>분류</span>
         <input
           type="text"
           {...form.register("category")}
-          placeholder="Category"
-          className="min-h-11 rounded-xl border px-3 py-2"
+          placeholder="예: 식비, 월급"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
         />
       </label>
 
       <label className="flex flex-col gap-2 text-sm">
-        <span>Amount</span>
+        <span>금액</span>
         <input
           type="number"
           min={0}
           step={1}
           {...form.register("amount", { valueAsNumber: true })}
-          className="min-h-11 rounded-xl border px-3 py-2"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
         />
       </label>
 
       <label className="flex flex-col gap-2 text-sm md:col-span-2">
-        <span>Note</span>
+        <span>메모</span>
         <input
           type="text"
           {...form.register("note")}
-          placeholder="Optional note"
-          className="min-h-11 rounded-xl border px-3 py-2"
+          placeholder="기억해 둘 내용이 있다면 적어 주세요"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
         />
       </label>
 
-      <label className="flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2 text-sm">
+      <label className="flex min-h-11 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm">
         <input
           type="checkbox"
           {...form.register("isRecurring")}
-          className="size-5 rounded border"
+          className="size-5 rounded border-slate-300"
         />
-        <span>Recurring</span>
+        <span>매달 반복해요</span>
       </label>
 
       <label className="flex flex-col gap-2 text-sm">
-        <span>Repeat day</span>
+        <span>반복일</span>
         <input
           type="number"
           min={1}
           max={31}
           disabled={!isRecurring}
           {...form.register("recurrenceDate", { valueAsNumber: true })}
-          className="min-h-11 rounded-xl border px-3 py-2 disabled:opacity-50"
+          className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 disabled:bg-slate-50 disabled:text-slate-400"
         />
       </label>
 
       <div className="flex flex-col gap-3 md:col-span-4 md:flex-row md:items-end">
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          {isPending ? "Saving..." : "Quick Add"}
+          {isPending ? "저장하고 있어요" : "내역 추가하기"}
         </Button>
         {validationMessage ? (
           <p className="text-sm text-destructive">{validationMessage}</p>
@@ -155,16 +157,16 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
       <div className="md:hidden">
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
-            <Button type="button" size="lg" className="w-full justify-between rounded-2xl">
-              <span>Quick Add</span>
-              <span className="text-xs text-primary-foreground/80">Open entry sheet</span>
+            <Button type="button" size="lg" className="w-full justify-between rounded-3xl">
+              <span>내역 추가하기</span>
+              <span className="text-xs text-primary-foreground/80">빠르게 입력해요</span>
             </Button>
           </DrawerTrigger>
-          <DrawerContent className="rounded-t-[2rem]">
+          <DrawerContent className="rounded-t-[2rem] bg-slate-50">
             <DrawerHeader>
-              <DrawerTitle>Quick Add</DrawerTitle>
+              <DrawerTitle>내역 추가하기</DrawerTitle>
               <DrawerDescription>
-                Add a transaction without leaving the current list position.
+                지금 보고 있는 흐름을 잊기 전에 바로 기록해요.
               </DrawerDescription>
             </DrawerHeader>
             <form
@@ -178,7 +180,7 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
       </div>
 
       <form
-        className="hidden gap-4 rounded-3xl border p-4 md:grid md:grid-cols-6 md:p-5"
+        className="hidden gap-4 rounded-3xl bg-slate-50 p-6 md:grid md:grid-cols-6"
         onSubmit={form.handleSubmit(submitValues)}
       >
         {formFields}

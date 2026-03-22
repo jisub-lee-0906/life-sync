@@ -84,7 +84,7 @@ export const yearMonthSchema = z
     } catch {
       return false;
     }
-  }, "Use a real calendar month in YYYY-MM format.");
+  }, "월 형식을 다시 확인해 주세요.");
 export const calendarDateSchema = z
   .string()
   .trim()
@@ -96,7 +96,7 @@ export const calendarDateSchema = z
     } catch {
       return false;
     }
-  }, "Use a real calendar date in YYYY-MM-DD format.");
+  }, "날짜 형식을 다시 확인해 주세요.");
 
 export const routineDaySchema = z.enum([
   "monCheck",

@@ -9,18 +9,18 @@ export function parseValidatedYearMonth(value: string) {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
 
   if (!match) {
-    throw new Error("Invalid year-month format.");
+    throw new Error("월 형식을 다시 확인해 주세요.");
   }
 
   const year = Number(match[1]);
   const month = Number(match[2]);
 
   if (year < 1) {
-    throw new Error("Invalid calendar year.");
+    throw new Error("연도를 다시 확인해 주세요.");
   }
 
   if (month < 1 || month > 12) {
-    throw new Error("Invalid calendar month.");
+    throw new Error("월을 다시 확인해 주세요.");
   }
 
   const monthStart = buildUtcDate(year, month - 1, 1);
@@ -29,7 +29,7 @@ export function parseValidatedYearMonth(value: string) {
     monthStart.getUTCFullYear() !== year ||
     monthStart.getUTCMonth() !== month - 1
   ) {
-    throw new Error("Invalid calendar year.");
+    throw new Error("연도를 다시 확인해 주세요.");
   }
 
   return {
@@ -43,7 +43,7 @@ export function parseValidatedCalendarDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
   if (!match) {
-    throw new Error("Invalid date format.");
+    throw new Error("날짜 형식을 다시 확인해 주세요.");
   }
 
   const year = Number(match[1]);
@@ -51,7 +51,7 @@ export function parseValidatedCalendarDate(value: string) {
   const day = Number(match[3]);
 
   if (year < 1) {
-    throw new Error("Invalid calendar date.");
+    throw new Error("날짜를 다시 확인해 주세요.");
   }
 
   const date = buildUtcDate(year, month - 1, day);
@@ -61,7 +61,7 @@ export function parseValidatedCalendarDate(value: string) {
     date.getUTCMonth() !== month - 1 ||
     date.getUTCDate() !== day
   ) {
-    throw new Error("Invalid calendar date.");
+    throw new Error("날짜를 다시 확인해 주세요.");
   }
 
   return {
