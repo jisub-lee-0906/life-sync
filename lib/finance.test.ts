@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { quickAddTransactionSchema } from "./finance.ts";
+import { importCsvRowSchema, quickAddTransactionSchema } from "./finance.ts";
 
 test("quickAddTransactionSchema ignores recurrenceDate when a transaction is not recurring", () => {
   const parsed = quickAddTransactionSchema.parse({
@@ -30,5 +30,21 @@ test("quickAddTransactionSchema still validates repeat day for recurring transac
         type: "EXPENSE",
       }),
     /repeat day between 1 and 31/,
+  );
+});
+
+test("importCsvRowSchema rejects blank CSV amounts instead of coercing them to zero", () => {
+  assert.throws(
+    () =>
+      importCsvRowSchema.parse({
+        amount: "   ",
+        category: "Food",
+        date: "2026-03-22",
+        isRecurring: false,
+        note: "",
+        recurrenceDate: null,
+        type: "EXPENSE",
+      }),
+    /Amount is required/,
   );
 });

@@ -95,6 +95,11 @@ export const csvTransactionRowSchema = z.object({
   amount: z.union([z.number(), z.string()]).transform((value) => {
     const sanitized =
       typeof value === "string" ? value.replace(/,/g, "").trim() : String(value);
+
+    if (sanitized.length === 0) {
+      throw new Error("Amount is required.");
+    }
+
     const numericValue = Number(sanitized);
 
     if (!Number.isFinite(numericValue) || numericValue < 0) {
