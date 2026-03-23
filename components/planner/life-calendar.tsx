@@ -195,15 +195,13 @@ export function LifeCalendar({
                 </div>
                 <div className="flex items-center gap-1.5 text-[0.72rem] font-semibold sm:text-sm">
                   <CircleDollarSign className="size-3 sm:size-3.5" />
-                  <span>지출 {(summary?.totalExpense ?? 0).toLocaleString("ko-KR")}원</span>
+                  <span>
+                    합계 {(
+                      (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0)
+                    ).toLocaleString("ko-KR")}
+                    원
+                  </span>
                 </div>
-                <p
-                  className={`text-[0.68rem] sm:text-xs ${
-                    isSelected ? "text-primary-foreground/72" : "text-slate-400"
-                  }`}
-                >
-                  완료 {summary?.completedTasksCount ?? 0}개
-                </p>
               </div>
             </button>
           );
@@ -241,7 +239,7 @@ export function LifeCalendar({
                 </p>
               </div>
               <div className="rounded-[1.6rem] border border-slate-200/70 bg-white px-4 py-4 shadow-sm">
-                <p className="text-xs font-semibold text-slate-400">순금액</p>
+                <p className="text-xs font-semibold text-slate-400">합계</p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">
                   {netAmount.toLocaleString("ko-KR")}원
                 </p>
