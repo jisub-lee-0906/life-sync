@@ -31,7 +31,7 @@ export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
   }
 
   return (
-    <div>
+    <div className="w-full sm:w-auto">
       <input
         ref={inputRef}
         type="file"
@@ -51,6 +51,7 @@ export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
       <Button
         type="button"
         variant="outline"
+        className="w-full justify-center sm:w-auto"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >

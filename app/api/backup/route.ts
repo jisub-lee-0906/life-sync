@@ -15,12 +15,12 @@ export async function GET() {
   const userId = session?.user?.id;
 
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
   }
 
   if (!hasDatabaseUrl) {
     return NextResponse.json(
-      { error: "Database connection is not configured." },
+      { error: "데이터베이스 연결을 확인해 주세요." },
       { status: 503 },
     );
   }
@@ -55,11 +55,53 @@ export async function GET() {
 
   const payload: FullBackupPayload = {
     exportedAt: new Date().toISOString(),
-    mandalarts,
-    routines,
+    mandalarts: mandalarts.map((board) => ({
+      cells: board.cells.map((cell) => ({
+        goal: cell.goal,
+        id: cell.id,
+        isCompleted: cell.isCompleted,
+        position: cell.position,
+      })),
+      coreGoal: board.coreGoal,
+      id: board.id,
+      userId: board.userId,
+    })),
+    routines: routines.map((routine) => ({
+      friCheck: routine.friCheck,
+      id: routine.id,
+      monCheck: routine.monCheck,
+      satCheck: routine.satCheck,
+      sunCheck: routine.sunCheck,
+      thuCheck: routine.thuCheck,
+      title: routine.title,
+      tueCheck: routine.tueCheck,
+      userId: routine.userId,
+      wedCheck: routine.wedCheck,
+    })),
     settings: userSettings ?? null,
-    tasks,
-    transactions,
+    tasks: tasks.map((task) => ({
+      date: task.date.toISOString(),
+      id: task.id,
+      priority: task.priority,
+      progress: task.progress,
+      status: task.status,
+      title: task.title,
+      type: task.type,
+      userId: task.userId,
+    })),
+    transactions: transactions.map((transaction) => ({
+      amount: transaction.amount,
+      category: transaction.category,
+      date: transaction.date.toISOString(),
+      derivedYearMonth: transaction.derivedYearMonth,
+      id: transaction.id,
+      isRecurring: transaction.isRecurring,
+      note: transaction.note,
+      recurrenceDate: transaction.recurrenceDate,
+      sourceTransactionId: transaction.sourceTransactionId,
+      type: transaction.type,
+      userId: transaction.userId,
+    })),
     version: BACKUP_PAYLOAD_VERSION,
   };
 

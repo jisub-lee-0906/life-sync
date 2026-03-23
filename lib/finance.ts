@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { insertTransactionSchema } from "@/schemas";
 import {
+  buildTimeZoneMonthRange,
   formatTimeZoneDateOnlyValue,
-  SEOUL_TIME_ZONE,
+  formatTimeZoneYearMonthValue,
   parseTimeZoneDateOnlyToUtc,
+  SEOUL_TIME_ZONE,
 } from "@/lib/timezone-date";
 
 export const transactionTypeValues = ["INCOME", "EXPENSE"] as const;
@@ -34,31 +35,23 @@ function validateRecurrenceDate(
   }
 }
 
-export const quickAddTransactionFormSchema = z.object({
-  amount: z.number().int().min(0),
-  category: z.string().trim().min(1).max(120),
-  date: calendarDateStringSchema,
-  isRecurring: z.boolean(),
-  note: z.string().trim().max(1000),
-  recurrenceDate: z.union([z.number().int(), z.null(), z.undefined()]).optional(),
-  type: z.enum(transactionTypeValues),
-}).superRefine(validateRecurrenceDate);
+export const quickAddTransactionFormSchema = z
+  .object({
+    amount: z.number().int().min(0, "금액은 0원 이상이어야 해요."),
+    category: z.string().trim().min(1, "분류를 입력해 주세요.").max(120),
+    date: calendarDateStringSchema,
+    isRecurring: z.boolean(),
+    note: z.string().trim().max(1000),
+    recurrenceDate: z.union([z.number().int(), z.null(), z.undefined()]).optional(),
+    type: z.enum(transactionTypeValues),
+  })
+  .superRefine(validateRecurrenceDate);
 
-export const quickAddTransactionSchema = insertTransactionSchema
-  .omit({
-    id: true,
-    userId: true,
-  })
-  .extend({
-    amount: quickAddTransactionFormSchema.shape.amount,
-    category: quickAddTransactionFormSchema.shape.category,
-    date: quickAddTransactionFormSchema.shape.date,
-    isRecurring: quickAddTransactionFormSchema.shape.isRecurring,
-    note: quickAddTransactionFormSchema.shape.note,
-    recurrenceDate: quickAddTransactionFormSchema.shape.recurrenceDate,
-    type: quickAddTransactionFormSchema.shape.type,
-  })
-  .superRefine(validateRecurrenceDate)
+export const recurringSyncSchema = z.object({
+  yearMonth: z.string().trim().regex(/^\d{4}-\d{2}$/, "월 형식을 확인해 주세요."),
+});
+
+export const quickAddTransactionSchema = quickAddTransactionFormSchema
   .transform((value) => {
     const isRecurring = value.isRecurring ?? false;
     const normalizedNote = value.note?.trim() || null;
@@ -76,6 +69,10 @@ export const quickAddTransactionSchema = insertTransactionSchema
       type: value.type,
     };
   });
+
+export const updateTransactionSchema = quickAddTransactionFormSchema.extend({
+  id: z.string().uuid(),
+});
 
 export const csvTransactionRowSchema = z.object({
   amount: z.union([z.number(), z.string()]).transform((value) => {
@@ -136,16 +133,6 @@ export const importCsvRowSchema = csvTransactionRowSchema.transform((value) =>
   }),
 );
 
-export const csvHeaderSchema = z.object({
-  amount: z.string(),
-  category: z.string(),
-  date: z.string(),
-  isRecurring: z.string(),
-  note: z.string(),
-  recurrenceDate: z.string(),
-  type: z.string(),
-});
-
 const requiredCsvHeaders = [
   "date",
   "type",
@@ -157,6 +144,7 @@ const requiredCsvHeaders = [
 ] as const;
 
 export type QuickAddTransactionInput = z.infer<typeof quickAddTransactionFormSchema>;
+export type TransactionUpdateInput = z.infer<typeof updateTransactionSchema>;
 export type NormalizedTransactionInput = z.output<typeof quickAddTransactionSchema>;
 export type CsvTransactionRow = {
   amount: number | string;
@@ -202,15 +190,13 @@ function parseOptionalIntegerFormValue(value: FormDataEntryValue | null) {
 }
 
 export function normalizeQuickAddFormData(input: FormData) {
-  const rawRecurrenceDate = input.get("recurrenceDate");
-
   return {
     amount: parseOptionalIntegerFormValue(input.get("amount")),
     category: input.get("category"),
     date: input.get("date"),
     isRecurring: input.get("isRecurring") === "on",
     note: input.get("note"),
-    recurrenceDate: parseOptionalIntegerFormValue(rawRecurrenceDate),
+    recurrenceDate: parseOptionalIntegerFormValue(input.get("recurrenceDate")),
     type: input.get("type"),
   };
 }
@@ -245,4 +231,15 @@ export function formatDateInputValue(date: Date) {
 
 export function formatTransactionDate(date: Date) {
   return formatTimeZoneDateOnlyValue(date, SEOUL_TIME_ZONE);
+}
+
+export function resolveRecurringDate(yearMonth: string, recurrenceDate: number) {
+  const { endExclusive } = buildTimeZoneMonthRange(yearMonth, SEOUL_TIME_ZONE);
+  const lastDay = new Date(endExclusive.getTime() - 1).getUTCDate();
+  const safeDay = Math.min(Math.max(recurrenceDate, 1), lastDay);
+  return parseTimeZoneDateOnlyToUtc(`${yearMonth}-${`${safeDay}`.padStart(2, "0")}`, SEOUL_TIME_ZONE);
+}
+
+export function resolveTransactionYearMonth(date: Date) {
+  return formatTimeZoneYearMonthValue(date, SEOUL_TIME_ZONE);
 }

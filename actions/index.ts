@@ -6,8 +6,16 @@ export {
   getCurrentMonthExpenseTotal,
   getTransactions,
   importCSV,
+  syncRecurringTransactions,
+  updateTransaction,
 } from "@/actions/finance";
 export {
+  createMandalart,
+  createRoutine,
+  createTask,
+  deleteMandalart,
+  deleteRoutine,
+  deleteTask,
   getAnalyticsData,
   getCalendarData,
   getMandalart,
@@ -15,6 +23,11 @@ export {
   getRoutineOverview,
   getTaskOverview,
   toggleRoutineCheck,
+  toggleMandalartCellCompleted,
+  updateMandalartCell,
+  updateMandalartCoreGoal,
+  updateRoutine,
+  updateTask,
   updateTaskProgress,
 } from "@/actions/planner";
-export { updateIcons } from "@/actions/settings";
+export { restoreBackup, updateIcons } from "@/actions/settings";

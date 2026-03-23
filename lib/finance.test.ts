@@ -9,6 +9,8 @@ import {
   normalizeCsvUploadRow,
   normalizeQuickAddFormData,
   quickAddTransactionSchema,
+  resolveRecurringDate,
+  resolveTransactionYearMonth,
 } from "./finance.ts";
 
 test("quickAddTransactionSchema ignores recurrenceDate when a transaction is not recurring", () => {
@@ -177,5 +179,27 @@ test("calculateMonthExpenseTotal uses Seoul calendar boundaries at month edges",
       "2026-03",
     ),
     9000,
+  );
+});
+
+test("resolveRecurringDate snaps overflowing recurrence days to the end of the month", () => {
+  assert.equal(
+    formatTransactionDate(resolveRecurringDate("2026-02", 31)),
+    "2026-02-28",
+  );
+  assert.equal(
+    formatTransactionDate(resolveRecurringDate("2028-02", 31)),
+    "2028-02-29",
+  );
+});
+
+test("resolveTransactionYearMonth uses Seoul calendar boundaries", () => {
+  assert.equal(
+    resolveTransactionYearMonth(new Date("2026-03-31T14:59:59.000Z")),
+    "2026-03",
+  );
+  assert.equal(
+    resolveTransactionYearMonth(new Date("2026-03-31T15:00:00.000Z")),
+    "2026-04",
   );
 });

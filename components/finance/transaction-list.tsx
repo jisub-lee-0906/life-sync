@@ -10,6 +10,7 @@ type TransactionListProps = {
   isLoadingMore: boolean;
   items: FinanceTransactionViewModel[];
   onDelete: (id: string) => Promise<void> | void;
+  onEdit: (item: FinanceTransactionViewModel) => void;
   onLoadMore: () => Promise<void> | void;
 };
 
@@ -18,6 +19,7 @@ export function TransactionList({
   isLoadingMore,
   items,
   onDelete,
+  onEdit,
   onLoadMore,
 }: TransactionListProps) {
   const { inView, ref } = useInView({
@@ -38,7 +40,7 @@ export function TransactionList({
         </p>
       ) : (
         items.map((item) => (
-          <TransactionItem key={item.id} item={item} onDelete={onDelete} />
+          <TransactionItem key={item.id} item={item} onDelete={onDelete} onEdit={onEdit} />
         ))
       )}
 
@@ -46,7 +48,7 @@ export function TransactionList({
 
       {hasMore ? (
         <p className="text-center text-sm text-muted-foreground">
-          {isLoadingMore ? "내역을 더 불러오는 중이에요" : "아래로 내려서 더 볼 수 있어요"}
+          {isLoadingMore ? "내역을 더 불러오는 중이에요." : "아래로 내려서 더 볼 수 있어요."}
         </p>
       ) : null}
     </div>

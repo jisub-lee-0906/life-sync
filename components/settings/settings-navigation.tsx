@@ -16,7 +16,7 @@ const baseItems = [
     label: "기본 설정",
   },
   {
-    description: "내 데이터를 파일로 저장해요.",
+    description: "내 데이터를 파일로 저장하거나 복구해요.",
     href: "/settings/backup",
     label: "백업",
   },
@@ -45,10 +45,10 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "block min-h-11 rounded-3xl bg-white px-4 py-4 shadow-sm transition-all duration-200",
+              "flex min-h-11 flex-col justify-center rounded-2xl border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm transition-all duration-200",
               active
-                ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                : "hover:bg-slate-50",
+                ? "border-transparent bg-sidebar-primary text-sidebar-primary-foreground"
+                : "hover:border-slate-300/70 hover:bg-slate-50",
             )}
           >
             <p className="text-sm font-semibold">{item.label}</p>

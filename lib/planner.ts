@@ -5,6 +5,10 @@ import {
 } from "@/lib/planner-date";
 import { formatTimeZoneDateOnlyValue, SEOUL_TIME_ZONE } from "@/lib/timezone-date";
 
+export const taskTypeValues = ["TASK", "ROUTINE"] as const;
+export const taskPriorityValues = ["LOW", "MEDIUM", "HIGH"] as const;
+export const taskStatusValues = ["IN_PROGRESS", "COMPLETED"] as const;
+
 export type CalendarDaySummary = {
   completedTasksCount: number;
   date: string;
@@ -50,13 +54,15 @@ export type PlannerPanelData = {
   }[];
 };
 
+export type MandalartCellState = {
+  goal: string;
+  id: string;
+  isCompleted: boolean;
+  position: number;
+};
+
 export type MandalartState = {
-  cells: {
-    goal: string;
-    id: string;
-    isCompleted: boolean;
-    position: number;
-  }[];
+  cells: MandalartCellState[];
   coreGoal: string;
   id: string;
 };
@@ -85,6 +91,7 @@ export const yearMonthSchema = z
       return false;
     }
   }, "월 형식을 다시 확인해 주세요.");
+
 export const calendarDateSchema = z
   .string()
   .trim()
@@ -107,6 +114,39 @@ export const routineDaySchema = z.enum([
   "satCheck",
   "sunCheck",
 ]);
+
+export const taskFormSchema = z.object({
+  date: calendarDateSchema,
+  priority: z.enum(taskPriorityValues),
+  title: z.string().trim().min(1, "제목을 입력해 주세요.").max(255),
+  type: z.enum(taskTypeValues).default("TASK"),
+});
+
+export const routineFormSchema = z.object({
+  title: z.string().trim().min(1, "루틴 이름을 입력해 주세요.").max(255),
+});
+
+export const mandalartFormSchema = z.object({
+  cellGoals: z
+    .array(z.string().trim().min(1, "목표를 입력해 주세요.").max(255))
+    .length(8),
+  coreGoal: z.string().trim().min(1, "핵심 목표를 입력해 주세요.").max(255),
+});
+
+export const mandalartCellUpdateSchema = z.object({
+  cellId: z.string().uuid(),
+  goal: z.string().trim().min(1, "목표를 입력해 주세요.").max(255),
+});
+
+export const mandalartToggleSchema = z.object({
+  cellId: z.string().uuid(),
+  isCompleted: z.boolean(),
+});
+
+export const mandalartCoreGoalSchema = z.object({
+  coreGoal: z.string().trim().min(1, "핵심 목표를 입력해 주세요.").max(255),
+  mandalartId: z.string().uuid(),
+});
 
 function buildUtcDate(year: number, monthIndex: number, day: number) {
   const date = new Date(0);
@@ -132,7 +172,11 @@ export function parseCalendarDate(value: string) {
 }
 
 export function nextDay(date: Date) {
-  return buildUtcDate(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1);
+  return buildUtcDate(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate() + 1,
+  );
 }
 
 export function buildDaySummary(date: string): CalendarDaySummary {
@@ -155,6 +199,25 @@ export function formatDateOnlyValue(date: Date) {
 
 export function formatSeoulDateOnlyValue(date: Date) {
   return formatTimeZoneDateOnlyValue(date, SEOUL_TIME_ZONE);
+}
+
+export function formatTaskTypeLabel(type: string) {
+  if (type === "ROUTINE") return "루틴";
+  if (type === "TASK") return "할 일";
+  return type;
+}
+
+export function formatTaskPriorityLabel(priority: string) {
+  if (priority === "HIGH") return "중요";
+  if (priority === "MEDIUM") return "보통";
+  if (priority === "LOW") return "가볍게";
+  return priority;
+}
+
+export function formatTaskStatusLabel(status: string) {
+  if (status === "COMPLETED") return "완료";
+  if (status === "IN_PROGRESS") return "진행 중";
+  return status;
 }
 
 export function taskToOverviewItem(task: {

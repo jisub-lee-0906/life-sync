@@ -19,24 +19,41 @@ import {
 } from "@/lib/finance";
 
 type QuickAddFormProps = {
+  initialValues?: QuickAddTransactionInput;
+  isEditing?: boolean;
   isPending: boolean;
+  onCancel?: () => void;
   onSubmit: (input: QuickAddTransactionInput) => Promise<void> | void;
 };
 
-export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
+function buildDefaults(input?: QuickAddTransactionInput): QuickAddTransactionInput {
+  return {
+    amount: input?.amount ?? 0,
+    category: input?.category ?? "",
+    date: input?.date ?? formatDateInputValue(new Date()),
+    isRecurring: input?.isRecurring ?? false,
+    note: input?.note ?? "",
+    recurrenceDate: input?.recurrenceDate ?? undefined,
+    type: input?.type ?? "EXPENSE",
+  };
+}
+
+export function QuickAddForm({
+  initialValues,
+  isEditing = false,
+  isPending,
+  onCancel,
+  onSubmit,
+}: QuickAddFormProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const form = useForm<QuickAddTransactionInput>({
-    defaultValues: {
-      amount: 0,
-      category: "",
-      date: formatDateInputValue(new Date()),
-      isRecurring: false,
-      note: "",
-      recurrenceDate: undefined,
-      type: "EXPENSE",
-    },
+    defaultValues: buildDefaults(initialValues),
     resolver: zodResolver(quickAddTransactionFormSchema),
   });
+
+  useEffect(() => {
+    form.reset(buildDefaults(initialValues));
+  }, [form, initialValues]);
 
   const isRecurring = useWatch({
     control: form.control,
@@ -51,21 +68,18 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
 
   async function submitValues(values: QuickAddTransactionInput) {
     await onSubmit(values);
-    form.reset({
-      amount: 0,
-      category: "",
-      date: formatDateInputValue(new Date()),
-      isRecurring: false,
-      note: "",
-      recurrenceDate: undefined,
-      type: values.type,
-    });
-    setIsDrawerOpen(false);
+
+    if (!isEditing) {
+      form.reset(buildDefaults());
+      setIsDrawerOpen(false);
+    }
   }
 
   const validationMessage = Object.values(form.formState.errors)[0]?.message as
     | string
     | undefined;
+  const primaryLabel = isEditing ? "내역 저장하기" : "내역 추가하기";
+  const helperText = isEditing ? "필요한 항목만 바꾸고 바로 저장해요." : "지금 흐름을 잊기 전에 바로 기록해요.";
 
   const formFields = (
     <>
@@ -143,8 +157,13 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
 
       <div className="flex flex-col gap-3 md:col-span-4 md:flex-row md:items-end">
         <Button type="submit" disabled={isPending} className="w-full md:w-auto">
-          {isPending ? "저장하고 있어요" : "내역 추가하기"}
+          {isPending ? "저장하고 있어요" : primaryLabel}
         </Button>
+        {isEditing && onCancel ? (
+          <Button type="button" variant="outline" className="w-full md:w-auto" onClick={onCancel}>
+            취소
+          </Button>
+        ) : null}
         {validationMessage ? (
           <p className="text-sm text-destructive">{validationMessage}</p>
         ) : null}
@@ -152,22 +171,34 @@ export function QuickAddForm({ isPending, onSubmit }: QuickAddFormProps) {
     </>
   );
 
+  if (isEditing) {
+    return (
+      <form
+        className="grid gap-4 rounded-3xl bg-slate-50 p-6 md:grid-cols-6"
+        onSubmit={form.handleSubmit(submitValues)}
+      >
+        <div className="md:col-span-6">
+          <p className="text-sm text-muted-foreground">{helperText}</p>
+        </div>
+        {formFields}
+      </form>
+    );
+  }
+
   return (
     <>
       <div className="md:hidden">
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
             <Button type="button" size="lg" className="w-full justify-between rounded-3xl">
-              <span>내역 추가하기</span>
+              <span>{primaryLabel}</span>
               <span className="text-xs text-primary-foreground/80">빠르게 입력해요</span>
             </Button>
           </DrawerTrigger>
           <DrawerContent className="rounded-t-[2rem] bg-slate-50">
             <DrawerHeader>
-              <DrawerTitle>내역 추가하기</DrawerTitle>
-              <DrawerDescription>
-                지금 보고 있는 흐름을 잊기 전에 바로 기록해요.
-              </DrawerDescription>
+              <DrawerTitle>{primaryLabel}</DrawerTitle>
+              <DrawerDescription>{helperText}</DrawerDescription>
             </DrawerHeader>
             <form
               className="safe-pb grid gap-4 overflow-y-auto px-4 pb-6 pt-2 sm:px-6"

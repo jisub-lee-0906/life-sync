@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
@@ -8,9 +8,15 @@ import {
   buildDaySummary,
   formatDateOnlyValue,
   formatSeoulDateOnlyValue,
+  mandalartCellUpdateSchema,
+  mandalartCoreGoalSchema,
+  mandalartFormSchema,
+  mandalartToggleSchema,
   parseCalendarDate,
   parseYearMonthRange,
   routineDaySchema,
+  routineFormSchema,
+  taskFormSchema,
   taskToOverviewItem,
   type CalendarMonthSummary,
   type ExpenseCategoryDatum,
@@ -25,18 +31,18 @@ import {
   buildTimeZoneMonthRange,
   SEOUL_TIME_ZONE,
 } from "@/lib/timezone-date";
-import { routines, tasks } from "@/drizzle/schema";
+import { mandalartCells, mandalarts, routines, tasks } from "@/drizzle/schema";
 
 async function requirePlannerUserId() {
   const session = await auth();
   const userId = session?.user?.id;
 
   if (!userId) {
-    throw new Error("Unauthorized");
+    throw new Error("로그인이 필요해요.");
   }
 
   if (!hasDatabaseUrl) {
-    throw new Error("Database connection is not configured.");
+    throw new Error("데이터베이스 연결을 확인해 주세요.");
   }
 
   return userId;
@@ -50,7 +56,7 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
   const [monthTransactions, monthTasks] = await Promise.all([
     db.query.transactions.findMany({
       columns: { amount: true, date: true, type: true },
-      orderBy: (table, { desc }) => [desc(table.date)],
+      orderBy: (table) => [desc(table.date)],
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
@@ -95,15 +101,13 @@ export async function getCalendarData(yearMonth: string): Promise<CalendarMonthS
 export async function getPlannerPanelData(date: string): Promise<PlannerPanelData> {
   const userId = await requirePlannerUserId();
   const { date: taskDate, dateString } = parseCalendarDate(date);
-  const { endExclusive: transactionDayEnd, start: transactionDayStart } = buildTimeZoneDayRange(
-    dateString,
-    SEOUL_TIME_ZONE,
-  );
+  const { endExclusive: transactionDayEnd, start: transactionDayStart } =
+    buildTimeZoneDayRange(dateString, SEOUL_TIME_ZONE);
 
   const [dayTransactions, dayTasks] = await Promise.all([
     db.query.transactions.findMany({
       columns: { amount: true, category: true, id: true, note: true, type: true },
-      orderBy: (table, { desc }) => [desc(table.date), desc(table.id)],
+      orderBy: (table) => [desc(table.date), desc(table.id)],
       where: (table, operators) =>
         and(
           operators.eq(table.userId, userId),
@@ -112,7 +116,7 @@ export async function getPlannerPanelData(date: string): Promise<PlannerPanelDat
         ),
     }),
     db.query.tasks.findMany({
-      orderBy: (table, { asc, desc }) => [desc(table.progress), asc(table.title)],
+      orderBy: (table) => [desc(table.progress), asc(table.title)],
       where: (table, operators) =>
         and(operators.eq(table.userId, userId), operators.eq(table.date, taskDate)),
     }),
@@ -128,7 +132,6 @@ export async function getPlannerPanelData(date: string): Promise<PlannerPanelDat
 export async function getMandalart(): Promise<MandalartState | null> {
   const userId = await requirePlannerUserId();
   const board = await db.query.mandalarts.findFirst({
-    orderBy: (table, { asc }) => [asc(table.coreGoal)],
     where: (table, { eq }) => eq(table.userId, userId),
     with: {
       cells: {
@@ -154,7 +157,7 @@ export async function getRoutineOverview(): Promise<RoutineOverviewItem[]> {
 export async function getTaskOverview(): Promise<TaskOverviewItem[]> {
   const userId = await requirePlannerUserId();
   const taskRows = await db.query.tasks.findMany({
-    orderBy: (table, { asc, desc }) => [asc(table.date), desc(table.progress)],
+    orderBy: (table, { asc, desc }) => [asc(table.date), desc(table.progress), asc(table.title)],
     where: (table, { eq }) => eq(table.userId, userId),
   });
 
@@ -214,29 +217,295 @@ export async function getAnalyticsData(yearMonth: string): Promise<{
   };
 }
 
+export async function createTask(input: {
+  date: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  title: string;
+  type: "TASK" | "ROUTINE";
+}) {
+  const userId = await requirePlannerUserId();
+  const parsed = taskFormSchema.parse(input);
+  const { date } = parseCalendarDate(parsed.date);
+
+  const [createdTask] = await db
+    .insert(tasks)
+    .values({
+      date,
+      priority: parsed.priority,
+      progress: 0,
+      status: "IN_PROGRESS",
+      title: parsed.title,
+      type: parsed.type,
+      userId,
+    })
+    .returning();
+
+  revalidatePath("/analytics");
+  revalidatePath("/calendar");
+  revalidatePath("/todo-routine");
+
+  return taskToOverviewItem(createdTask);
+}
+
+export async function updateTask(taskId: string, input: {
+  date: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  title: string;
+  type: "TASK" | "ROUTINE";
+}) {
+  const userId = await requirePlannerUserId();
+  const parsed = taskFormSchema.parse(input);
+  const { date } = parseCalendarDate(parsed.date);
+
+  const [updatedTask] = await db
+    .update(tasks)
+    .set({
+      date,
+      priority: parsed.priority,
+      title: parsed.title,
+      type: parsed.type,
+    })
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
+    .returning();
+
+  revalidatePath("/analytics");
+  revalidatePath("/calendar");
+  revalidatePath("/todo-routine");
+
+  if (!updatedTask) {
+    throw new Error("수정할 할 일을 찾지 못했어요.");
+  }
+
+  return taskToOverviewItem(updatedTask);
+}
+
+export async function deleteTask(taskId: string) {
+  const userId = await requirePlannerUserId();
+
+  await db.delete(tasks).where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
+
+  revalidatePath("/analytics");
+  revalidatePath("/calendar");
+  revalidatePath("/todo-routine");
+
+  return { deleted: true, id: taskId };
+}
+
 export async function updateTaskProgress(taskId: string, progress: number) {
   const userId = await requirePlannerUserId();
   const clampedProgress = Math.min(100, Math.max(0, Math.round(progress)));
   const nextStatus = clampedProgress >= 100 ? "COMPLETED" : "IN_PROGRESS";
 
-  await db
+  const [updatedTask] = await db
     .update(tasks)
     .set({ progress: clampedProgress, status: nextStatus })
-    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
+    .returning();
+
+  revalidatePath("/analytics");
+  revalidatePath("/calendar");
+  revalidatePath("/todo-routine");
+
+  if (!updatedTask) {
+    throw new Error("진행률을 저장하지 못했어요.");
+  }
+
+  return taskToOverviewItem(updatedTask);
+}
+
+export async function createRoutine(input: { title: string }) {
+  const userId = await requirePlannerUserId();
+  const parsed = routineFormSchema.parse(input);
+
+  const [createdRoutine] = await db
+    .insert(routines)
+    .values({
+      title: parsed.title,
+      userId,
+    })
+    .returning();
 
   revalidatePath("/todo-routine");
-  revalidatePath("/calendar");
-  revalidatePath("/analytics");
+
+  return createdRoutine;
+}
+
+export async function updateRoutine(routineId: string, input: { title: string }) {
+  const userId = await requirePlannerUserId();
+  const parsed = routineFormSchema.parse(input);
+
+  const [updatedRoutine] = await db
+    .update(routines)
+    .set({ title: parsed.title })
+    .where(and(eq(routines.id, routineId), eq(routines.userId, userId)))
+    .returning();
+
+  revalidatePath("/todo-routine");
+
+  if (!updatedRoutine) {
+    throw new Error("수정할 루틴을 찾지 못했어요.");
+  }
+
+  return updatedRoutine;
+}
+
+export async function deleteRoutine(routineId: string) {
+  const userId = await requirePlannerUserId();
+
+  await db
+    .delete(routines)
+    .where(and(eq(routines.id, routineId), eq(routines.userId, userId)));
+
+  revalidatePath("/todo-routine");
+
+  return { deleted: true, id: routineId };
 }
 
 export async function toggleRoutineCheck(routineId: string, day: string, value: boolean) {
   const userId = await requirePlannerUserId();
   const dayKey = routineDaySchema.parse(day);
 
-  await db
+  const [updatedRoutine] = await db
     .update(routines)
     .set({ [dayKey]: value })
-    .where(and(eq(routines.id, routineId), eq(routines.userId, userId)));
+    .where(and(eq(routines.id, routineId), eq(routines.userId, userId)))
+    .returning();
 
   revalidatePath("/todo-routine");
+
+  if (!updatedRoutine) {
+    throw new Error("루틴 상태를 바꾸지 못했어요.");
+  }
+
+  return updatedRoutine;
+}
+
+export async function createMandalart(input: { coreGoal: string; cellGoals: string[] }) {
+  const userId = await requirePlannerUserId();
+  const parsed = mandalartFormSchema.parse(input);
+
+  const existingBoard = await db.query.mandalarts.findFirst({
+    columns: { id: true },
+    where: (table, { eq }) => eq(table.userId, userId),
+  });
+
+  if (existingBoard) {
+    throw new Error("만다라트는 한 개만 만들 수 있어요.");
+  }
+
+  await db.transaction(async (tx) => {
+    const [createdBoard] = await tx
+      .insert(mandalarts)
+      .values({
+        coreGoal: parsed.coreGoal,
+        userId,
+      })
+      .returning();
+
+    await tx.insert(mandalartCells).values(
+      parsed.cellGoals.map((goal, index) => ({
+        goal,
+        mandalartId: createdBoard.id,
+        position: index + 1,
+      })),
+    );
+
+  });
+
+  revalidatePath("/mandalart");
+
+  return getMandalart();
+}
+
+export async function updateMandalartCoreGoal(input: {
+  coreGoal: string;
+  mandalartId: string;
+}) {
+  const userId = await requirePlannerUserId();
+  const parsed = mandalartCoreGoalSchema.parse(input);
+
+  const [updatedBoard] = await db
+    .update(mandalarts)
+    .set({ coreGoal: parsed.coreGoal })
+    .where(and(eq(mandalarts.id, parsed.mandalartId), eq(mandalarts.userId, userId)))
+    .returning();
+
+  revalidatePath("/mandalart");
+
+  if (!updatedBoard) {
+    throw new Error("만다라트를 수정하지 못했어요.");
+  }
+
+  return getMandalart();
+}
+
+export async function updateMandalartCell(input: { cellId: string; goal: string }) {
+  const userId = await requirePlannerUserId();
+  const parsed = mandalartCellUpdateSchema.parse(input);
+
+  const ownedCell = await db.query.mandalartCells.findFirst({
+    columns: { id: true, mandalartId: true },
+    where: (table, { eq }) => eq(table.id, parsed.cellId),
+  });
+
+  const ownedBoard = ownedCell
+    ? await db.query.mandalarts.findFirst({
+        columns: { userId: true },
+        where: (table, { eq }) => eq(table.id, ownedCell.mandalartId),
+      })
+    : null;
+
+  if (!ownedCell || ownedBoard?.userId !== userId) {
+    throw new Error("수정할 목표를 찾지 못했어요.");
+  }
+
+  await db.update(mandalartCells).set({ goal: parsed.goal }).where(eq(mandalartCells.id, parsed.cellId));
+
+  revalidatePath("/mandalart");
+
+  return getMandalart();
+}
+
+export async function toggleMandalartCellCompleted(input: {
+  cellId: string;
+  isCompleted: boolean;
+}) {
+  const userId = await requirePlannerUserId();
+  const parsed = mandalartToggleSchema.parse(input);
+  const ownedCell = await db.query.mandalartCells.findFirst({
+    columns: { id: true, mandalartId: true },
+    where: (table, { eq }) => eq(table.id, parsed.cellId),
+  });
+
+  const ownedBoard = ownedCell
+    ? await db.query.mandalarts.findFirst({
+        columns: { userId: true },
+        where: (table, { eq }) => eq(table.id, ownedCell.mandalartId),
+      })
+    : null;
+
+  if (!ownedCell || ownedBoard?.userId !== userId) {
+    throw new Error("상태를 바꿀 목표를 찾지 못했어요.");
+  }
+
+  await db
+    .update(mandalartCells)
+    .set({ isCompleted: parsed.isCompleted })
+    .where(eq(mandalartCells.id, parsed.cellId));
+
+  revalidatePath("/mandalart");
+
+  return getMandalart();
+}
+
+export async function deleteMandalart(mandalartId: string) {
+  const userId = await requirePlannerUserId();
+
+  await db
+    .delete(mandalarts)
+    .where(and(eq(mandalarts.id, mandalartId), eq(mandalarts.userId, userId)));
+
+  revalidatePath("/mandalart");
+
+  return { deleted: true, id: mandalartId };
 }

@@ -16,9 +16,7 @@ export default async function TodoRoutinePage() {
       <Card>
         <CardHeader>
           <CardTitle>루틴 체크</CardTitle>
-          <CardDescription>
-            매주 반복하는 루틴을 가볍게 체크해 보세요.
-          </CardDescription>
+          <CardDescription>매주 반복하는 루틴을 추가하고 가볍게 체크해 보세요.</CardDescription>
         </CardHeader>
         <CardContent>
           <RoutineTracker routines={routines} />
@@ -28,9 +26,7 @@ export default async function TodoRoutinePage() {
       <Card>
         <CardHeader>
           <CardTitle>할 일 진행률</CardTitle>
-          <CardDescription>
-            슬라이더만 움직여도 진행률이 바로 저장돼요.
-          </CardDescription>
+          <CardDescription>새 할 일을 만들고 슬라이더로 진행률을 바로 반영할 수 있어요.</CardDescription>
         </CardHeader>
         <CardContent>
           <TaskProgressPanel tasks={tasks} />

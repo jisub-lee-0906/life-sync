@@ -2,7 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToString } from "react-dom/server";
-import { PlannerStoreProvider, usePlannerStore } from "@/store";
+import {
+  PlannerStoreProvider,
+  usePlannerStore,
+  useRecurringSyncStore,
+} from "@/store";
 
 function SelectedDateValue() {
   const selectedDate = usePlannerStore((state) => state.selectedDate);
@@ -28,4 +32,19 @@ test("PlannerStoreProvider scopes store state per mounted tree", () => {
 
   assert.match(firstRender, /2026-03-22/);
   assert.match(secondRender, /2026-03-23/);
+});
+
+test("useRecurringSyncStore deduplicates synced months within the session", () => {
+  useRecurringSyncStore.getState().resetSyncedMonths();
+
+  useRecurringSyncStore.getState().markMonthSynced("2026-03");
+  useRecurringSyncStore.getState().markMonthSynced("2026-03");
+  useRecurringSyncStore.getState().markMonthSynced("2026-04");
+
+  const syncedMonths = [...useRecurringSyncStore.getState().syncedMonths].sort();
+
+  assert.deepEqual(syncedMonths, ["2026-03", "2026-04"]);
+
+  useRecurringSyncStore.getState().resetSyncedMonths();
+  assert.equal(useRecurringSyncStore.getState().syncedMonths.size, 0);
 });

@@ -52,9 +52,7 @@ export function AnalyticsDashboard({
                     <Cell key={entry.name} fill={palette[index % palette.length]} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}원`}
-                />
+                <Tooltip formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}원`} />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -88,9 +86,7 @@ export function AnalyticsDashboard({
                       <Cell key={entry.name} fill={palette[index % palette.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}개`}
-                  />
+                  <Tooltip formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}개`} />
                 </PieChart>
               </ResponsiveContainer>
             )}

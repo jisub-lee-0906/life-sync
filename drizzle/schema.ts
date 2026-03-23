@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   date,
@@ -31,15 +32,15 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 120 }).notNull(),
   emailVerified: timestamp("email_verified", {
-    withTimezone: true,
     mode: "date",
+    withTimezone: true,
   }),
   image: text("image"),
   role: userRoleEnum("role").notNull().default("USER"),
   status: userStatusEnum("status").notNull().default("PENDING"),
   createdAt: timestamp("created_at", {
-    withTimezone: true,
     mode: "date",
+    withTimezone: true,
   })
     .notNull()
     .defaultNow(),
@@ -77,10 +78,15 @@ export const transactions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    sourceTransactionId: uuid("source_transaction_id").references(
+      (): AnyPgColumn => transactions.id,
+      { onDelete: "cascade" },
+    ),
+    derivedYearMonth: varchar("derived_year_month", { length: 7 }),
     type: transactionTypeEnum("type").notNull(),
     amount: integer("amount").notNull(),
     category: varchar("category", { length: 120 }).notNull(),
-    date: timestamp("date", { withTimezone: true, mode: "date" }).notNull(),
+    date: timestamp("date", { mode: "date", withTimezone: true }).notNull(),
     note: text("note"),
     isRecurring: boolean("is_recurring").notNull().default(false),
     recurrenceDate: integer("recurrence_date"),
@@ -90,6 +96,10 @@ export const transactions = pgTable(
     check(
       "transactions_recurrence_date_range",
       sql`${table.recurrenceDate} IS NULL OR (${table.recurrenceDate} >= 1 AND ${table.recurrenceDate} <= 31)`,
+    ),
+    unique("transactions_source_transaction_year_month_unique").on(
+      table.sourceTransactionId,
+      table.derivedYearMonth,
     ),
   ],
 );
@@ -131,13 +141,17 @@ export const routines = pgTable("routines", {
   sunCheck: boolean("sun_check").notNull().default(false),
 });
 
-export const mandalarts = pgTable("mandalarts", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  coreGoal: varchar("core_goal", { length: 255 }).notNull(),
-});
+export const mandalarts = pgTable(
+  "mandalarts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    coreGoal: varchar("core_goal", { length: 255 }).notNull(),
+  },
+  (table) => [unique("mandalarts_user_id_unique").on(table.userId)],
+);
 
 export const mandalartCells = pgTable(
   "mandalart_cells",
@@ -167,22 +181,20 @@ export const settings = pgTable("settings", {
     .notNull()
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  scheduleIcon: varchar("schedule_icon", { length: 32 })
-    .notNull()
-    .default("🗓️"),
+  scheduleIcon: varchar("schedule_icon", { length: 32 }).notNull().default("🗓️"),
   todoIcon: varchar("todo_icon", { length: 32 }).notNull().default("✅"),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
-  transactions: many(transactions),
-  tasks: many(tasks),
-  routines: many(routines),
   mandalarts: many(mandalarts),
+  routines: many(routines),
   settings: one(settings, {
     fields: [users.id],
     references: [settings.userId],
   }),
+  tasks: many(tasks),
+  transactions: many(transactions),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -192,7 +204,15 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
-export const transactionsRelations = relations(transactions, ({ one }) => ({
+export const transactionsRelations = relations(transactions, ({ many, one }) => ({
+  derivedTransactions: many(transactions, {
+    relationName: "transaction_source",
+  }),
+  sourceTransaction: one(transactions, {
+    fields: [transactions.sourceTransactionId],
+    references: [transactions.id],
+    relationName: "transaction_source",
+  }),
   user: one(users, {
     fields: [transactions.userId],
     references: [users.id],
@@ -214,22 +234,19 @@ export const routinesRelations = relations(routines, ({ one }) => ({
 }));
 
 export const mandalartsRelations = relations(mandalarts, ({ many, one }) => ({
+  cells: many(mandalartCells),
   user: one(users, {
     fields: [mandalarts.userId],
     references: [users.id],
   }),
-  cells: many(mandalartCells),
 }));
 
-export const mandalartCellsRelations = relations(
-  mandalartCells,
-  ({ one }) => ({
-    mandalart: one(mandalarts, {
-      fields: [mandalartCells.mandalartId],
-      references: [mandalarts.id],
-    }),
+export const mandalartCellsRelations = relations(mandalartCells, ({ one }) => ({
+  mandalart: one(mandalarts, {
+    fields: [mandalartCells.mandalartId],
+    references: [mandalarts.id],
   }),
-);
+}));
 
 export const settingsRelations = relations(settings, ({ one }) => ({
   user: one(users, {
@@ -247,16 +264,10 @@ export const selectAccountSchema = createSelectSchema(accounts);
 export const insertAccountSchema = createInsertSchema(accounts);
 
 export const selectTransactionSchema = createSelectSchema(transactions);
-export const insertTransactionSchema = createInsertSchema(transactions, {
-  amount: (schema) => schema.min(0),
-  recurrenceDate: (schema) =>
-    schema.int().min(1).max(31).nullable().optional(),
-});
+export const insertTransactionSchema = createInsertSchema(transactions);
 
 export const selectTaskSchema = createSelectSchema(tasks);
-export const insertTaskSchema = createInsertSchema(tasks, {
-  progress: (schema) => schema.int().min(0).max(100),
-});
+export const insertTaskSchema = createInsertSchema(tasks);
 
 export const selectRoutineSchema = createSelectSchema(routines);
 export const insertRoutineSchema = createInsertSchema(routines);

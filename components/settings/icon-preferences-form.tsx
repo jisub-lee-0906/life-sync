@@ -37,9 +37,7 @@ export function IconPreferencesForm({
             form.reset(resolveIconPreferences(saved));
             setServerMessage("설정을 저장했어요.");
           } catch (error) {
-            setServerMessage(
-              error instanceof Error ? error.message : "설정을 저장하지 못했어요.",
-            );
+            setServerMessage(error instanceof Error ? error.message : "설정을 저장하지 못했어요.");
           }
         });
       })}
@@ -53,10 +51,10 @@ export function IconPreferencesForm({
             maxLength={10}
             {...form.register("scheduleIcon")}
             className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm transition-all duration-200 focus:border-primary"
-            placeholder="📅"
+            placeholder="🗓️"
           />
           <span className="text-xs text-muted-foreground">
-            지금 쓰는 이모지만 넣으면 더 깔끔해요.
+            지금 쓰는 이모지를 그대로 넣으면 더 깔끔해요.
           </span>
         </label>
 
@@ -77,20 +75,14 @@ export function IconPreferencesForm({
       </div>
 
       {form.formState.errors.scheduleIcon ? (
-        <p className="text-sm text-destructive">
-          {form.formState.errors.scheduleIcon.message}
-        </p>
+        <p className="text-sm text-destructive">{form.formState.errors.scheduleIcon.message}</p>
       ) : null}
 
       {form.formState.errors.todoIcon ? (
-        <p className="text-sm text-destructive">
-          {form.formState.errors.todoIcon.message}
-        </p>
+        <p className="text-sm text-destructive">{form.formState.errors.todoIcon.message}</p>
       ) : null}
 
-      {serverMessage ? (
-        <p className="text-sm text-muted-foreground">{serverMessage}</p>
-      ) : null}
+      {serverMessage ? <p className="text-sm text-muted-foreground">{serverMessage}</p> : null}
 
       <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "저장하고 있어요" : "저장하기"}

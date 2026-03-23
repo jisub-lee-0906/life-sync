@@ -30,6 +30,7 @@ export function CsvExportButton({ disabled, onExport }: CsvExportButtonProps) {
     <Button
       type="button"
       variant="outline"
+      className="w-full justify-center sm:w-auto"
       disabled={disabled}
       onClick={async () => {
         const rows = await onExport();

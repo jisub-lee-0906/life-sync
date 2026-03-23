@@ -1,8 +1,14 @@
 "use client";
 
-import { createContext, createElement, type PropsWithChildren, useContext, useRef } from "react";
+import {
+  createContext,
+  createElement,
+  type PropsWithChildren,
+  useContext,
+  useRef,
+} from "react";
 import { createStore, type StoreApi } from "zustand/vanilla";
-import { useStore } from "zustand";
+import { create, useStore } from "zustand";
 
 type PlannerStoreState = {
   isCalendarDrawerOpen: boolean;
@@ -14,6 +20,12 @@ type PlannerStore = PlannerStoreState & {
   closeCalendarDrawer: () => void;
   selectDate: (date: string | null) => void;
   selectMandalartCell: (cellId: string | null) => void;
+};
+
+type RecurringSyncStore = {
+  markMonthSynced: (yearMonth: string) => void;
+  resetSyncedMonths: () => void;
+  syncedMonths: Set<string>;
 };
 
 export function createPlannerStore(initialState?: Partial<PlannerStoreState>) {
@@ -62,3 +74,12 @@ export function usePlannerStore<T>(selector: (state: PlannerStore) => T) {
 
   return useStore(store, selector);
 }
+
+export const useRecurringSyncStore = create<RecurringSyncStore>((set) => ({
+  markMonthSynced: (yearMonth) =>
+    set((state) => ({
+      syncedMonths: new Set([...state.syncedMonths, yearMonth]),
+    })),
+  resetSyncedMonths: () => set({ syncedMonths: new Set() }),
+  syncedMonths: new Set<string>(),
+}));

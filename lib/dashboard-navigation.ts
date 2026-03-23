@@ -24,6 +24,14 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     },
   },
   {
+    href: "/settings/backup",
+    mobilePrimary: false,
+    meta: {
+      description: "데이터 백업과 복구",
+      label: "백업",
+    },
+  },
+  {
     href: "/finance",
     mobilePrimary: true,
     meta: {
@@ -67,7 +75,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/settings",
     mobilePrimary: true,
     meta: {
-      description: "취향과 백업 관리",
+      description: "기본 설정",
       label: "설정",
     },
   },

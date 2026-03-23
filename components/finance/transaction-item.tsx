@@ -8,6 +8,7 @@ import { formatKoreanDateLabel } from "@/lib/timezone-date";
 type TransactionItemProps = {
   item: FinanceTransactionViewModel;
   onDelete: (id: string) => Promise<void> | void;
+  onEdit: (item: FinanceTransactionViewModel) => void;
 };
 
 const transactionTypeLabel = {
@@ -15,7 +16,7 @@ const transactionTypeLabel = {
   INCOME: "수입",
 } as const;
 
-export function TransactionItem({ item, onDelete }: TransactionItemProps) {
+export function TransactionItem({ item, onDelete, onEdit }: TransactionItemProps) {
   return (
     <div
       className={`rounded-3xl bg-white p-5 shadow-sm transition-all duration-200 sm:p-6 ${
@@ -28,7 +29,8 @@ export function TransactionItem({ item, onDelete }: TransactionItemProps) {
             <Badge variant={item.type === "EXPENSE" ? "outline" : "secondary"}>
               {transactionTypeLabel[item.type]}
             </Badge>
-            {item.isRecurring ? <Badge variant="outline">반복</Badge> : null}
+            {item.isRecurring ? <Badge variant="outline">반복 원본</Badge> : null}
+            {item.sourceTransactionId ? <Badge variant="outline">반복 생성</Badge> : null}
             {item.isOptimistic ? <Badge variant="outline">저장 중</Badge> : null}
           </div>
           <div>
@@ -45,14 +47,14 @@ export function TransactionItem({ item, onDelete }: TransactionItemProps) {
             {item.amount.toLocaleString("ko-KR")}원
           </p>
           {!item.isOptimistic ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="mt-3 w-full sm:w-auto"
-              onClick={() => onDelete(item.id)}
-            >
-              삭제
-            </Button>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => onEdit(item)}>
+                수정
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => onDelete(item.id)}>
+                삭제
+              </Button>
+            </div>
           ) : null}
         </div>
       </div>
