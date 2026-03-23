@@ -9,7 +9,7 @@ import {
   startOfMonth,
 } from "date-fns";
 import { ko } from "date-fns/locale";
-import { CalendarDays, CircleDollarSign, ListChecks } from "lucide-react";
+import { CircleDollarSign, ListChecks } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { syncRecurringTransactions } from "@/actions/finance";
 import { getCalendarData, getPlannerPanelData } from "@/actions/planner";
@@ -71,7 +71,9 @@ export function LifeCalendar({
         setMonthSummary(nextSummary);
         setPanelData(nextPanelData);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "반복 내역을 불러오지 못했어요.");
+        setErrorMessage(
+          error instanceof Error ? error.message : "반복 내역을 불러오지 못했어요.",
+        );
       }
     });
   }, [isMonthSynced, markMonthSynced, monthKey, panelData, selectedDate]);
@@ -88,7 +90,9 @@ export function LifeCalendar({
         const nextPanelData = await getPlannerPanelData(selectedDate);
         setPanelData(nextPanelData);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "선택한 날짜를 불러오지 못했어요.");
+        setErrorMessage(
+          error instanceof Error ? error.message : "선택한 날짜를 불러오지 못했어요.",
+        );
       }
     });
   }, [selectedDate]);
@@ -115,6 +119,13 @@ export function LifeCalendar({
     end: endOfMonth(monthDate),
     start: startOfMonth(monthDate),
   });
+  const totalExpense = panelData.transactions
+    .filter((item) => item.type === "EXPENSE")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const totalIncome = panelData.transactions
+    .filter((item) => item.type === "INCOME")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const netAmount = totalIncome - totalExpense;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -178,34 +189,20 @@ export function LifeCalendar({
               </div>
 
               <div className={`space-y-1.5 ${isSelected ? "text-primary-foreground" : "text-slate-700"}`}>
-                <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold sm:hidden">
-                  <ListChecks className="size-3" />
-                  <span>{summary?.tasksCount ?? 0}개</span>
+                <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold sm:text-xs">
+                  <ListChecks className="size-3 sm:size-3.5" />
+                  <span>할 일 {summary?.tasksCount ?? 0}개</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[0.72rem] font-semibold sm:text-sm">
                   <CircleDollarSign className="size-3 sm:size-3.5" />
-                  <span>{(summary?.totalExpense ?? 0).toLocaleString("ko-KR")}원</span>
-                </div>
-                <div
-                  className={`hidden space-y-2 text-xs sm:block ${
-                    isSelected ? "text-primary-foreground/80" : "text-slate-400"
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <ListChecks className="size-3.5" />
-                    <span>할 일 {summary?.tasksCount ?? 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" />
-                    <span>완료 {summary?.completedTasksCount ?? 0}</span>
-                  </div>
+                  <span>지출 {(summary?.totalExpense ?? 0).toLocaleString("ko-KR")}원</span>
                 </div>
                 <p
-                  className={`hidden text-xs sm:block ${
+                  className={`text-[0.68rem] sm:text-xs ${
                     isSelected ? "text-primary-foreground/72" : "text-slate-400"
                   }`}
                 >
-                  수입 {(summary?.totalIncome ?? 0).toLocaleString("ko-KR")}원
+                  완료 {summary?.completedTasksCount ?? 0}개
                 </p>
               </div>
             </button>
@@ -222,13 +219,34 @@ export function LifeCalendar({
         <SheetContent side="right" className="w-full max-w-full bg-slate-50 sm:max-w-xl">
           <SheetHeader>
             <SheetTitle>{formatKoreanDateLabel(panelData.date)}</SheetTitle>
-            <SheetDescription>거래와 할 일을 한 번에 정리해 볼 수 있어요.</SheetDescription>
+            <SheetDescription>거래와 할 일을 한 번에 차분하게 살펴보세요.</SheetDescription>
           </SheetHeader>
 
           <div className="safe-pb space-y-6 px-4 pb-6 sm:px-6">
             {isPending ? (
               <p className="text-sm text-slate-400">상세 내용을 불러오고 있어요.</p>
             ) : null}
+
+            <section className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.6rem] border border-slate-200/70 bg-white px-4 py-4 shadow-sm">
+                <p className="text-xs font-semibold text-slate-400">지출</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900">
+                  {totalExpense.toLocaleString("ko-KR")}원
+                </p>
+              </div>
+              <div className="rounded-[1.6rem] border border-slate-200/70 bg-white px-4 py-4 shadow-sm">
+                <p className="text-xs font-semibold text-slate-400">수입</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900">
+                  {totalIncome.toLocaleString("ko-KR")}원
+                </p>
+              </div>
+              <div className="rounded-[1.6rem] border border-slate-200/70 bg-white px-4 py-4 shadow-sm">
+                <p className="text-xs font-semibold text-slate-400">순금액</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900">
+                  {netAmount.toLocaleString("ko-KR")}원
+                </p>
+              </div>
+            </section>
 
             <section className="space-y-3">
               <div className="flex items-end justify-between gap-3">
