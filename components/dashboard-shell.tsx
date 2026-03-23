@@ -8,19 +8,9 @@ import {
   CalendarDays,
   CheckSquare,
   Goal,
-  Menu,
   PiggyBank,
   Settings,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   getDashboardRouteMeta,
   getDashboardRoutes,
@@ -37,25 +27,25 @@ type NavigationItem = {
 
 const navigationItems: NavigationItem[] = [
   {
-    description: "수입과 지출을 정리해요",
+    description: "수입과 지출을 차분하게 정리해요",
     href: "/finance",
     icon: PiggyBank,
     label: "가계부",
   },
   {
-    description: "오늘 흐름을 한눈에 봐요",
+    description: "한 달의 흐름을 가볍게 살펴봐요",
     href: "/calendar",
     icon: CalendarDays,
     label: "캘린더",
   },
   {
-    description: "할 일과 루틴을 이어가요",
+    description: "할 일과 루틴을 꾸준히 이어가요",
     href: "/todo-routine",
     icon: CheckSquare,
     label: "할 일·루틴",
   },
   {
-    description: "중요한 목표를 펼쳐봐요",
+    description: "중요한 목표를 한눈에 모아봐요",
     href: "/mandalart",
     icon: Goal,
     label: "만다라트",
@@ -67,7 +57,7 @@ const navigationItems: NavigationItem[] = [
     label: "분석",
   },
   {
-    description: "설정과 데이터를 정리해요",
+    description: "설정과 데이터를 깔끔하게 관리해요",
     href: "/settings",
     icon: Settings,
     label: "설정",
@@ -80,13 +70,7 @@ const mobilePrimaryRoutes = new Set(
     .map((route) => route.href),
 );
 
-function SideNavigation({
-  onNavigate,
-  pathname,
-}: {
-  onNavigate?: () => void;
-  pathname: string;
-}) {
+function SideNavigation({ pathname }: { pathname: string }) {
   return (
     <nav className="flex min-w-0 flex-col gap-2">
       {navigationItems.map(({ description, href, icon: Icon, label }) => {
@@ -96,7 +80,6 @@ function SideNavigation({
           <Link
             key={href}
             href={href}
-            onClick={onNavigate}
             className={cn(
               "group flex min-w-0 items-center gap-3 rounded-[1.6rem] px-3 py-3 transition-all duration-200 xl:px-4",
               active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-slate-100",
@@ -172,7 +155,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 LifeSync
               </p>
               <p className="hidden text-sm leading-6 text-slate-400 xl:block">
-                오늘 필요한 정보만 조용하게 정리해요.
+                필요한 정보만 조용하게 정리해요.
               </p>
             </div>
             <SideNavigation pathname={pathname} />
@@ -180,41 +163,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className="flex min-h-[calc(100dvh-1.5rem)] min-w-0 flex-1 flex-col rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.04)]">
-          <header className="safe-pt flex flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-6 lg:px-8 lg:py-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <Sheet>
-                <SheetTrigger
-                  render={
-                    <Button
-                      aria-label="메뉴 열기"
-                      className="lg:hidden"
-                      size="icon-sm"
-                      variant="outline"
-                    />
-                  }
-                >
-                  <Menu className="size-4" />
-                </SheetTrigger>
-                <SheetContent side="left" className="w-full max-w-xs bg-white">
-                  <SheetHeader>
-                    <SheetTitle>LifeSync</SheetTitle>
-                    <SheetDescription>원하는 화면으로 바로 이동해 보세요.</SheetDescription>
-                  </SheetHeader>
-                  <div className="px-4 pb-6">
-                    <SideNavigation onNavigate={() => undefined} pathname={pathname} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-
-              <div className="min-w-0">
-                <h1 className="truncate font-heading text-[1.85rem] font-semibold tracking-tight text-slate-900 sm:text-[2.05rem]">
-                  {activeMeta.label}
-                </h1>
-              </div>
+          <header className="safe-pt flex min-h-[92px] items-center px-5 py-5 sm:min-h-[104px] sm:px-6 sm:py-6 lg:px-8">
+            <div className="min-w-0">
+              <h1 className="truncate font-heading text-[1.85rem] font-semibold tracking-tight text-slate-900 sm:text-[2.05rem]">
+                {activeMeta.label}
+              </h1>
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-4 pb-28 pt-3 sm:px-6 sm:pb-8 sm:pt-4 lg:px-8 lg:pb-8 lg:pt-5">
+          <main className="min-w-0 flex-1 px-4 pb-28 pt-2 sm:px-6 sm:pb-8 sm:pt-3 lg:px-8 lg:pb-8 lg:pt-4">
             {children}
           </main>
         </div>
