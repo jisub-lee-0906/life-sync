@@ -6,6 +6,37 @@ import type { ExpenseCategoryDatum, TaskCompletionDatum } from "@/lib/planner";
 
 const palette = ["#0040FF", "#60A5FA", "#22C55E", "#F59E0B", "#A855F7", "#0EA5E9"];
 
+function ChartLegend({
+  items,
+  suffix,
+}: {
+  items: Array<{ name: string; value: number }>;
+  suffix: string;
+}) {
+  return (
+    <div className="grid gap-2.5">
+      {items.map((item, index) => (
+        <div
+          key={item.name}
+          className="flex items-center justify-between rounded-[1.4rem] bg-slate-50 px-4 py-3"
+        >
+          <div className="flex items-center gap-2.5">
+            <span
+              className="size-2.5 rounded-full"
+              style={{ backgroundColor: palette[index % palette.length] }}
+            />
+            <span className="text-sm font-medium text-slate-700">{item.name}</span>
+          </div>
+          <span className="text-sm font-semibold text-slate-900">
+            {item.value.toLocaleString("ko-KR")}
+            {suffix}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AnalyticsDashboard({
   expenseByCategory,
   taskCompletion,
@@ -45,30 +76,51 @@ export function AnalyticsDashboard({
         <Card>
           <CardHeader>
             <CardTitle>지출 구성</CardTitle>
-            <CardDescription>어디에 가장 많이 쓰고 있는지 빠르게 읽을 수 있어요.</CardDescription>
+            <CardDescription>
+              어디에 가장 많이 쓰고 있는지 빠르게 읽을 수 있어요.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="grid gap-5 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:items-center">
             {expenseByCategory.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-slate-400">
+              <div className="flex min-h-72 items-center justify-center text-sm text-slate-400">
                 아직 이번 달 지출이 없어요.
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={expenseByCategory}
-                    innerRadius={74}
-                    outerRadius={114}
-                    dataKey="value"
-                    nameKey="name"
-                  >
-                    {expenseByCategory.map((entry, index) => (
-                      <Cell key={entry.name} fill={palette[index % palette.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}원`} />
-                </PieChart>
-              </ResponsiveContainer>
+              <>
+                <div className="mx-auto aspect-square w-full max-w-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        animationDuration={650}
+                        animationEasing="ease-out"
+                        cx="50%"
+                        cy="50%"
+                        data={expenseByCategory}
+                        dataKey="value"
+                        innerRadius="58%"
+                        nameKey="name"
+                        outerRadius="86%"
+                        paddingAngle={2}
+                        stroke="#FFFFFF"
+                        strokeWidth={5}
+                      >
+                        {expenseByCategory.map((entry, index) => (
+                          <Cell key={entry.name} fill={palette[index % palette.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}원`}
+                        contentStyle={{
+                          border: "1px solid rgba(226,232,240,0.9)",
+                          borderRadius: "16px",
+                          boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <ChartLegend items={expenseByCategory} suffix="원" />
+              </>
             )}
           </CardContent>
         </Card>
@@ -76,31 +128,52 @@ export function AnalyticsDashboard({
         <Card>
           <CardHeader>
             <CardTitle>할 일 흐름</CardTitle>
-            <CardDescription>완료와 진행 중 비중을 차분하게 비교해 볼 수 있어요.</CardDescription>
+            <CardDescription>
+              완료와 진행 중 비중을 차분하게 비교해 볼 수 있어요.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="h-72">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:items-center">
               {taskCompletion.totalCount === 0 ? (
-                <div className="flex h-full items-center justify-center text-sm text-slate-400">
+                <div className="flex min-h-72 items-center justify-center text-sm text-slate-400">
                   아직 이번 달 할 일이 없어요.
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={taskCompletionData}
-                      innerRadius={74}
-                      outerRadius={114}
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {taskCompletionData.map((entry, index) => (
-                        <Cell key={entry.name} fill={palette[index % palette.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}개`} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <>
+                  <div className="mx-auto aspect-square w-full max-w-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          animationDuration={650}
+                          animationEasing="ease-out"
+                          cx="50%"
+                          cy="50%"
+                          data={taskCompletionData}
+                          dataKey="value"
+                          innerRadius="58%"
+                          nameKey="name"
+                          outerRadius="86%"
+                          paddingAngle={2}
+                          stroke="#FFFFFF"
+                          strokeWidth={5}
+                        >
+                          {taskCompletionData.map((entry, index) => (
+                            <Cell key={entry.name} fill={palette[index % palette.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) => `${Number(value ?? 0).toLocaleString("ko-KR")}개`}
+                          contentStyle={{
+                            border: "1px solid rgba(226,232,240,0.9)",
+                            borderRadius: "16px",
+                            boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <ChartLegend items={taskCompletionData} suffix="개" />
+                </>
               )}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

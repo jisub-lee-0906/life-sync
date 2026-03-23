@@ -141,7 +141,7 @@ export function LifeCalendar({
         </div>
       ) : null}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      <section className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-7">
         {days.map((day) => {
           const dayKey = format(day, "yyyy-MM-dd");
           const summary = monthSummary[dayKey];
@@ -152,7 +152,7 @@ export function LifeCalendar({
             <button
               key={dayKey}
               type="button"
-              className={`flex min-h-32 flex-col justify-between rounded-[1.7rem] border px-4 py-4 text-left transition-all duration-200 sm:min-h-36 ${
+              className={`flex min-h-24 flex-col justify-between rounded-[1.5rem] border px-3 py-3 text-left transition-all duration-200 sm:min-h-32 sm:px-4 sm:py-4 ${
                 isSelected
                   ? "border-primary bg-primary text-primary-foreground shadow-[0_14px_30px_rgba(0,64,255,0.18)]"
                   : "border-slate-200/70 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
@@ -161,12 +161,14 @@ export function LifeCalendar({
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs text-inherit/70">{format(day, "EEE", { locale: ko })}</p>
-                  <p className="mt-1 text-xl font-semibold">{format(day, "d")}</p>
+                  <p className="text-[0.68rem] text-inherit/70 sm:text-xs">
+                    {format(day, "EEE", { locale: ko })}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold sm:text-xl">{format(day, "d")}</p>
                 </div>
                 {isToday ? (
                   <span
-                    className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold ${
+                    className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold sm:px-2.5 sm:py-1 sm:text-[0.72rem] ${
                       isSelected ? "bg-white/16 text-primary-foreground" : "bg-blue-50 text-primary"
                     }`}
                   >
@@ -175,23 +177,34 @@ export function LifeCalendar({
                 ) : null}
               </div>
 
-              <div className={`space-y-2 text-xs ${isSelected ? "text-primary-foreground/80" : "text-slate-400"}`}>
-                <div className="flex items-center gap-1.5">
-                  <ListChecks className="size-3.5" />
-                  <span>할 일 {summary?.tasksCount ?? 0}</span>
+              <div className={`space-y-1.5 ${isSelected ? "text-primary-foreground" : "text-slate-700"}`}>
+                <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold sm:hidden">
+                  <ListChecks className="size-3" />
+                  <span>{summary?.tasksCount ?? 0}개</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <CalendarDays className="size-3.5" />
-                  <span>완료 {summary?.completedTasksCount ?? 0}</span>
-                </div>
-              </div>
-
-              <div className={isSelected ? "text-primary-foreground" : "text-slate-700"}>
-                <div className="flex items-center gap-1.5 text-sm font-semibold">
-                  <CircleDollarSign className="size-3.5" />
+                <div className="flex items-center gap-1.5 text-[0.72rem] font-semibold sm:text-sm">
+                  <CircleDollarSign className="size-3 sm:size-3.5" />
                   <span>{(summary?.totalExpense ?? 0).toLocaleString("ko-KR")}원</span>
                 </div>
-                <p className={`mt-1 text-xs ${isSelected ? "text-primary-foreground/72" : "text-slate-400"}`}>
+                <div
+                  className={`hidden space-y-2 text-xs sm:block ${
+                    isSelected ? "text-primary-foreground/80" : "text-slate-400"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="size-3.5" />
+                    <span>할 일 {summary?.tasksCount ?? 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarDays className="size-3.5" />
+                    <span>완료 {summary?.completedTasksCount ?? 0}</span>
+                  </div>
+                </div>
+                <p
+                  className={`hidden text-xs sm:block ${
+                    isSelected ? "text-primary-foreground/72" : "text-slate-400"
+                  }`}
+                >
                   수입 {(summary?.totalIncome ?? 0).toLocaleString("ko-KR")}원
                 </p>
               </div>
@@ -221,7 +234,9 @@ export function LifeCalendar({
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900">가계부</h3>
-                  <p className="mt-1 text-sm text-slate-400">그날 남긴 거래를 차분하게 확인해요.</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    그날 오간 거래를 차분하게 확인해요.
+                  </p>
                 </div>
               </div>
 
@@ -232,7 +247,10 @@ export function LifeCalendar({
               ) : (
                 <div className="space-y-3">
                   {panelData.transactions.map((item) => (
-                    <div key={item.id} className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm">
+                    <div
+                      key={item.id}
+                      className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm"
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-semibold text-slate-900">{item.category}</p>
@@ -256,7 +274,9 @@ export function LifeCalendar({
             <section className="space-y-3">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">할 일</h3>
-                <p className="mt-1 text-sm text-slate-400">그날 진행한 일도 함께 볼 수 있어요.</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  그날 진행한 흐름도 함께 볼 수 있어요.
+                </p>
               </div>
 
               {panelData.tasks.length === 0 ? (
@@ -266,7 +286,10 @@ export function LifeCalendar({
               ) : (
                 <div className="space-y-3">
                   {panelData.tasks.map((task) => (
-                    <div key={task.id} className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm">
+                    <div
+                      key={task.id}
+                      className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-slate-900">{task.title}</p>
