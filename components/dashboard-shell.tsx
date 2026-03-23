@@ -214,7 +214,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-4 pb-28 pt-1 sm:px-6 sm:pb-8 lg:px-8 lg:pb-8">
+          <main className="min-w-0 flex-1 px-4 pb-28 pt-3 sm:px-6 sm:pb-8 sm:pt-4 lg:px-8 lg:pb-8 lg:pt-5">
             {children}
           </main>
         </div>

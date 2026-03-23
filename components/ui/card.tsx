@@ -24,7 +24,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "grid auto-rows-min items-start gap-2 px-6 data-[slot=card-header]:rounded-t-[2rem] has-data-[slot=card-action]:grid-cols-[1fr_auto] group-data-[size=sm]/card:px-5",
+        "grid auto-rows-min items-start gap-2.5 px-6 pt-1 data-[slot=card-header]:rounded-t-[2rem] has-data-[slot=card-action]:grid-cols-[1fr_auto] group-data-[size=sm]/card:px-5 group-data-[size=sm]/card:pt-0.5",
         className,
       )}
       {...props}
@@ -69,7 +69,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-6 group-data-[size=sm]/card:px-5", className)}
+      className={cn("px-6 pt-1 group-data-[size=sm]/card:px-5", className)}
       {...props}
     />
   );
