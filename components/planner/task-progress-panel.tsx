@@ -168,21 +168,21 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
           <input
             value={draft.title}
             onChange={(event) => handleDraftChange("title", event.target.value)}
-            className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
+            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
             placeholder="오늘 해야 할 일을 적어 주세요."
           />
           <input
             type="date"
             value={draft.date}
             onChange={(event) => handleDraftChange("date", event.target.value)}
-            className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
+            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
           />
           <select
             value={draft.priority}
             onChange={(event) =>
               handleDraftChange("priority", event.target.value as TaskDraft["priority"])
             }
-            className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
+            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
           >
             <option value="HIGH">중요</option>
             <option value="MEDIUM">보통</option>
@@ -193,7 +193,7 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
             onChange={(event) =>
               handleDraftChange("type", event.target.value as TaskDraft["type"])
             }
-            className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
+            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
           >
             <option value="TASK">할 일</option>
             <option value="ROUTINE">루틴형</option>
@@ -208,7 +208,7 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
               <p className="text-sm text-slate-400">진행률은 아래 목록에서 바로 조절할 수 있어요.</p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 md:justify-end">
             {editingTask ? (
               <Button type="button" variant="outline" onClick={resetForm}>
                 취소
