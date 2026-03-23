@@ -11,12 +11,12 @@ type SettingsNavigationProps = {
 
 const baseItems = [
   {
-    description: "아이콘과 기본 취향을 바꿔요.",
+    description: "아이콘과 기본 취향을 정리해요.",
     href: "/settings",
     label: "기본 설정",
   },
   {
-    description: "내 데이터를 파일로 저장하거나 복구해요.",
+    description: "백업 파일을 저장하거나 복구해요.",
     href: "/settings/backup",
     label: "백업",
   },
@@ -28,7 +28,7 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
     ? [
         ...baseItems,
         {
-          description: "가입 요청을 확인하고 처리해요.",
+          description: "가입 요청을 검토하고 처리해요.",
           href: "/settings/admin",
           label: "관리",
         },
@@ -45,19 +45,14 @@ export function SettingsNavigation({ isAdmin }: SettingsNavigationProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex min-h-11 flex-col justify-center rounded-2xl border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm transition-all duration-200",
+              "rounded-[1.5rem] border px-4 py-4 shadow-sm transition-all duration-200",
               active
-                ? "border-transparent bg-sidebar-primary text-sidebar-primary-foreground"
-                : "hover:border-slate-300/70 hover:bg-slate-50",
+                ? "border-primary bg-blue-50 text-slate-900"
+                : "border-slate-200/70 bg-white hover:border-slate-300 hover:bg-slate-50",
             )}
           >
             <p className="text-sm font-semibold">{item.label}</p>
-            <p
-              className={cn(
-                "mt-1 text-xs leading-5",
-                active ? "text-sidebar-primary-foreground/80" : "text-muted-foreground",
-              )}
-            >
+            <p className={cn("mt-1 text-xs leading-5", active ? "text-slate-500" : "text-slate-400")}>
               {item.description}
             </p>
           </Link>

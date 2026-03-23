@@ -5,16 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function PendingPage() {
   return (
     <main className="flex min-h-[100dvh] items-center justify-center px-4 py-10">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-[linear-gradient(180deg,#ffffff,#fbfdff)]">
         <CardHeader>
           <CardTitle>승인을 기다리고 있어요</CardTitle>
           <CardDescription>
-            관리자가 계정을 확인하면 바로 이용할 수 있어요.
+            관리자 확인이 끝나면 바로 사용할 수 있어요. 잠시 후 다시 들어와 보세요.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            잠시 뒤 다시 들어오면 승인 상태를 확인할 수 있어요.
+          <p className="text-sm leading-6 text-slate-400">
+            상태는 다시 로그인하면 바로 확인할 수 있어요.
           </p>
           <form
             action={async () => {

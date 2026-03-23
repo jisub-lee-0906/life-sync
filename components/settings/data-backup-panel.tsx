@@ -18,13 +18,10 @@ export function DataBackupPanel({ disabled }: DataBackupPanelProps) {
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     const confirmed = window.confirm(
-      "복구를 진행하면 현재 데이터가 모두 백업 파일 내용으로 바뀌어요. 계속할까요?",
+      "복구를 진행하면 현재 데이터가 백업 파일 내용으로 바뀌어요. 계속할까요?",
     );
 
     if (!confirmed) {
@@ -47,10 +44,20 @@ export function DataBackupPanel({ disabled }: DataBackupPanelProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        가계부, 캘린더, 루틴, 만다라트, 아이콘 설정까지 한 번에 백업할 수 있어요.
-      </p>
+    <div className="space-y-5">
+      <div className="rounded-[1.8rem] border border-slate-200/70 bg-slate-50 px-5 py-5">
+        <p className="text-sm leading-6 text-slate-500">
+          가계부, 캘린더, 루틴, 만다라트, 아이콘 설정까지 한 번에 저장할 수 있어요.
+        </p>
+      </div>
+
+      <div className="rounded-[1.8rem] border border-red-100 bg-red-50 px-5 py-5">
+        <p className="text-sm font-semibold text-red-600">복구는 현재 데이터를 덮어써요.</p>
+        <p className="mt-2 text-sm leading-6 text-red-500">
+          복구 전에 먼저 백업 파일을 한 번 더 저장해 두는 편이 안전해요.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {disabled ? (
           <Button type="button" disabled variant="outline" className="w-full sm:w-auto">
@@ -64,6 +71,7 @@ export function DataBackupPanel({ disabled }: DataBackupPanelProps) {
             전체 백업 다운로드
           </a>
         )}
+
         <input
           ref={inputRef}
           hidden
@@ -73,20 +81,22 @@ export function DataBackupPanel({ disabled }: DataBackupPanelProps) {
             void handleFileChange(event);
           }}
         />
+
         <Button
           type="button"
+          variant="destructive"
           disabled={disabled || isPending}
           onClick={() => inputRef.current?.click()}
         >
           {isPending ? "복구하고 있어요" : "백업 복구하기"}
         </Button>
       </div>
+
       {disabled ? (
-        <p className="text-sm text-muted-foreground">
-          지금 환경에서는 백업 데이터를 준비할 수 없어요.
-        </p>
+        <p className="text-sm text-slate-400">지금 환경에서는 백업 파일을 준비할 수 없어요.</p>
       ) : null}
-      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+
+      {message ? <p className="text-sm text-slate-400">{message}</p> : null}
     </div>
   );
 }

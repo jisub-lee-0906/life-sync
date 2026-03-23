@@ -25,32 +25,28 @@ export function CsvUploader({ disabled, onImport }: CsvUploaderProps) {
       });
     });
 
-    const rows = parsed.map((row) => normalizeCsvUploadRow(row));
-
-    await onImport(rows);
+    await onImport(parsed.map((row) => normalizeCsvUploadRow(row)));
   }
 
   return (
     <div className="w-full sm:w-auto">
       <input
         ref={inputRef}
-        type="file"
         accept=".csv,text/csv"
         className="hidden"
+        type="file"
         onChange={async (event) => {
           const file = event.target.files?.[0];
-
-          if (!file) {
-            return;
-          }
+          if (!file) return;
 
           await handleFile(file);
           event.currentTarget.value = "";
         }}
       />
+
       <Button
         type="button"
-        variant="outline"
+        variant="secondary"
         className="w-full justify-center sm:w-auto"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}

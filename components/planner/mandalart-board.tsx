@@ -9,7 +9,6 @@ import {
   updateMandalartCell,
   updateMandalartCoreGoal,
 } from "@/actions/planner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { MandalartState } from "@/lib/planner";
 import { usePlannerStore } from "@/store";
@@ -38,34 +37,36 @@ function EmptyBoard({
 
   return (
     <form
-      className="space-y-4 rounded-3xl bg-white p-6 shadow-sm"
+      className="space-y-5 rounded-[2rem] border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
       onSubmit={(event) => {
         event.preventDefault();
         setErrorMessage(null);
-        onSubmit({ coreGoal, cellGoals }).catch((error) => {
+        onSubmit({ cellGoals, coreGoal }).catch((error) => {
           setErrorMessage(error instanceof Error ? error.message : "만다라트를 만들지 못했어요.");
         });
       }}
     >
-      <div>
-        <h2 className="text-xl font-semibold text-slate-800">만다라트를 시작해 보세요</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          핵심 목표 1개와 세부 목표 8개를 먼저 적으면 바로 보드를 만들 수 있어요.
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-slate-900">처음 목표를 펼쳐볼까요?</h2>
+        <p className="text-sm leading-6 text-slate-400">
+          중심 목표 하나와 주변 목표 여덟 개만 적으면 바로 보드를 만들 수 있어요.
         </p>
       </div>
+
       <label className="flex flex-col gap-2 text-sm">
-        <span>핵심 목표</span>
+        <span className="text-slate-500">중심 목표</span>
         <input
           value={coreGoal}
           onChange={(event) => setCoreGoal(event.target.value)}
           className="min-h-11 rounded-2xl border border-slate-200 px-4"
-          placeholder="이번에 가장 집중할 목표"
+          placeholder="이번에 가장 집중하고 싶은 목표"
         />
       </label>
+
       <div className="grid gap-3 sm:grid-cols-2">
         {cellGoals.map((goal, index) => (
           <label key={index} className="flex flex-col gap-2 text-sm">
-            <span>{index + 1}번 목표</span>
+            <span className="text-slate-500">{index + 1}번째 목표</span>
             <input
               value={goal}
               onChange={(event) =>
@@ -76,14 +77,16 @@ function EmptyBoard({
                 )
               }
               className="min-h-11 rounded-2xl border border-slate-200 px-4"
-              placeholder="세부 목표를 적어 주세요"
+              placeholder="작게 쪼갠 목표를 적어 주세요."
             />
           </label>
         ))}
       </div>
+
       {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
+
       <Button type="submit" disabled={isPending}>
-        {isPending ? "만드는 중이에요" : "만다라트 만들기"}
+        {isPending ? "만들고 있어요" : "만다라트 만들기"}
       </Button>
     </form>
   );
@@ -134,8 +137,8 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
 
   return (
     <LayoutGroup>
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-white p-5 shadow-sm">
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center gap-3 rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm">
           <input
             value={coreGoalDraft}
             onChange={(event) => setCoreGoalDraft(event.target.value)}
@@ -153,12 +156,12 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                   });
                   syncBoard(nextBoard);
                 } catch (error) {
-                  setErrorMessage(error instanceof Error ? error.message : "핵심 목표를 저장하지 못했어요.");
+                  setErrorMessage(error instanceof Error ? error.message : "중심 목표를 저장하지 못했어요.");
                 }
               });
             }}
           >
-            핵심 목표 저장
+            저장하기
           </Button>
           <Button
             type="button"
@@ -170,7 +173,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                   await deleteMandalart(board.id);
                   syncBoard(null);
                 } catch (error) {
-                  setErrorMessage(error instanceof Error ? error.message : "만다라트를 삭제하지 못했어요.");
+                  setErrorMessage(error instanceof Error ? error.message : "보드를 삭제하지 못했어요.");
                 }
               });
             }}
@@ -179,61 +182,84 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
           </Button>
         </div>
 
-        {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
+        {errorMessage ? (
+          <div className="rounded-[1.6rem] border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {errorMessage}
+          </div>
+        ) : null}
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid aspect-square min-w-0 grid-cols-3 grid-rows-3 gap-3">
-            {board.cells.map((cell) => (
-              <motion.button
-                key={cell.id}
-                type="button"
-                layoutId={`mandalart-${cell.id}`}
-                className={`rounded-3xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5 ${positionToGrid[cell.position]}`}
-                onClick={() => {
-                  selectMandalartCell(cell.id);
-                  setCellGoalDraft(cell.goal);
-                }}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline">{cell.position}번</Badge>
-                  {cell.isCompleted ? <Badge variant="secondary">완료</Badge> : null}
-                </div>
-                <p className="mt-4 text-sm font-medium leading-6 text-slate-800">{cell.goal}</p>
-              </motion.button>
-            ))}
-            <div className="col-start-2 row-start-2 flex items-center justify-center rounded-3xl bg-primary p-4 text-center text-primary-foreground shadow-sm sm:p-6">
+            {board.cells.map((cell) => {
+              const isSelected = selectedCell?.id === cell.id;
+
+              return (
+                <motion.button
+                  key={cell.id}
+                  type="button"
+                  layoutId={`mandalart-${cell.id}`}
+                  className={`rounded-[1.8rem] border p-4 text-left transition-all duration-200 sm:p-5 ${
+                    isSelected
+                      ? "border-primary bg-blue-50 shadow-[0_16px_28px_rgba(0,64,255,0.12)]"
+                      : "border-slate-200/70 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                  } ${positionToGrid[cell.position]}`}
+                  onClick={() => {
+                    selectMandalartCell(cell.id);
+                    setCellGoalDraft(cell.goal);
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs font-semibold text-slate-400">{cell.position}</span>
+                    {cell.isCompleted ? (
+                      <span className="rounded-full bg-blue-50 px-2 py-1 text-[0.72rem] font-semibold text-primary">
+                        완료
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-5 text-sm font-medium leading-6 text-slate-800">{cell.goal}</p>
+                </motion.button>
+              );
+            })}
+
+            <div className="col-start-2 row-start-2 flex items-center justify-center rounded-[1.8rem] bg-slate-900 p-5 text-center text-white shadow-[0_16px_36px_rgba(15,23,42,0.16)]">
               <div>
-                <p className="text-xs font-semibold tracking-[0.08em] text-primary-foreground/80">
-                  핵심 목표
+                <p className="text-xs font-semibold tracking-[0.12em] text-white/55 uppercase">중심 목표</p>
+                <p className="mt-3 font-heading text-xl font-semibold leading-snug sm:text-2xl">
+                  {board.coreGoal}
                 </p>
-                <p className="mt-3 font-heading text-xl sm:text-2xl">{board.coreGoal}</p>
               </div>
             </div>
           </div>
 
-          <div className="min-h-64 rounded-3xl bg-slate-50 p-4">
+          <div className="min-h-64 rounded-[1.9rem] border border-slate-200/70 bg-slate-50 p-4">
             <AnimatePresence mode="wait">
               {selectedCell ? (
                 <motion.div
                   key={selectedCell.id}
                   layoutId={`mandalart-${selectedCell.id}`}
-                  initial={{ opacity: 0, scale: 0.96 }}
+                  initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  className="h-full rounded-3xl bg-white p-6 shadow-sm"
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  className="h-full rounded-[1.7rem] border border-slate-200/70 bg-white p-6 shadow-sm"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Badge variant="outline">집중 보기</Badge>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">집중 보기</p>
+                      <p className="mt-2 text-lg font-semibold text-slate-900">
+                        {selectedCell.position}번째 목표
+                      </p>
+                    </div>
                     <Button type="button" variant="ghost" onClick={() => selectMandalartCell(null)}>
                       닫기
                     </Button>
                   </div>
-                  <p className="mt-6 text-sm text-muted-foreground">{selectedCell.position}번 목표</p>
+
                   <textarea
                     value={cellGoalDraft}
                     onChange={(event) => setCellGoalDraft(event.target.value)}
-                    className="mt-3 min-h-32 w-full rounded-2xl border border-slate-200 p-4"
+                    className="mt-5 min-h-36 w-full rounded-[1.5rem] border border-slate-200 p-4"
                   />
+
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button
                       type="button"
@@ -252,7 +278,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                         });
                       }}
                     >
-                      목표 저장
+                      저장하기
                     </Button>
                     <Button
                       type="button"
@@ -267,12 +293,14 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                             });
                             syncBoard(nextBoard);
                           } catch (error) {
-                            setErrorMessage(error instanceof Error ? error.message : "완료 상태를 저장하지 못했어요.");
+                            setErrorMessage(
+                              error instanceof Error ? error.message : "완료 상태를 저장하지 못했어요.",
+                            );
                           }
                         });
                       }}
                     >
-                      {selectedCell.isCompleted ? "완료 해제" : "완료 표시"}
+                      {selectedCell.isCompleted ? "완료 해제" : "완료로 표시"}
                     </Button>
                   </div>
                 </motion.div>
@@ -282,9 +310,14 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex h-full items-center justify-center rounded-3xl bg-white p-6 text-center text-sm leading-6 text-muted-foreground shadow-sm"
+                  className="flex h-full items-center justify-center rounded-[1.7rem] border border-dashed border-slate-200 bg-white px-6 text-center"
                 >
-                  목표 칸을 눌러 자세히 살펴보세요.
+                  <div>
+                    <p className="text-base font-semibold text-slate-700">하나를 골라 집중해 보세요.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                      외곽 목표를 누르면 더 자세히 다듬을 수 있어요.
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

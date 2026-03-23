@@ -10,32 +10,16 @@ export type DashboardRouteDefinition = {
 };
 
 const fallbackRouteMeta: DashboardRouteMeta = {
-  description: "오늘의 흐름",
+  description: "오늘 필요한 화면",
   label: "LifeSync",
 };
 
 const routeDefinitions: DashboardRouteDefinition[] = [
   {
-    href: "/settings/admin",
-    mobilePrimary: false,
-    meta: {
-      description: "가입 승인 관리",
-      label: "관리",
-    },
-  },
-  {
-    href: "/settings/backup",
-    mobilePrimary: false,
-    meta: {
-      description: "데이터 백업과 복구",
-      label: "백업",
-    },
-  },
-  {
     href: "/finance",
     mobilePrimary: true,
     meta: {
-      description: "이번 달 수입과 지출",
+      description: "수입과 지출을 빠르게 정리해요.",
       label: "가계부",
     },
   },
@@ -43,7 +27,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/calendar",
     mobilePrimary: true,
     meta: {
-      description: "하루 일정과 내역",
+      description: "오늘 일정과 소비를 한눈에 봐요.",
       label: "캘린더",
     },
   },
@@ -51,7 +35,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/todo-routine",
     mobilePrimary: true,
     meta: {
-      description: "할 일과 루틴 체크",
+      description: "할 일과 루틴을 가볍게 이어가요.",
       label: "할 일·루틴",
     },
   },
@@ -59,7 +43,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/mandalart",
     mobilePrimary: true,
     meta: {
-      description: "목표를 한눈에",
+      description: "중요한 목표를 차분하게 펼쳐봐요.",
       label: "만다라트",
     },
   },
@@ -67,7 +51,7 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/analytics",
     mobilePrimary: false,
     meta: {
-      description: "지출과 달성률 보기",
+      description: "이번 흐름을 숫자로 확인해요.",
       label: "분석",
     },
   },
@@ -75,8 +59,24 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     href: "/settings",
     mobilePrimary: true,
     meta: {
-      description: "기본 설정",
+      description: "기본 설정과 데이터 관리를 정리해요.",
       label: "설정",
+    },
+  },
+  {
+    href: "/settings/backup",
+    mobilePrimary: false,
+    meta: {
+      description: "백업 파일을 저장하거나 복구해요.",
+      label: "백업",
+    },
+  },
+  {
+    href: "/settings/admin",
+    mobilePrimary: false,
+    meta: {
+      description: "가입 요청을 검토하고 처리해요.",
+      label: "관리",
     },
   },
 ];

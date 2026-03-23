@@ -14,12 +14,12 @@ export default async function SettingsLayout({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
-      <aside className="rounded-3xl bg-slate-50 p-4">
-        <div className="mb-4 space-y-1">
-          <p className="text-sm font-semibold">설정</p>
-          <p className="text-sm text-muted-foreground">
-            취향 설정과 백업, 관리 기능을 모아뒀어요.
+    <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-6">
+      <aside className="rounded-[2rem] border border-slate-200/70 bg-white p-5 shadow-sm">
+        <div className="mb-5 space-y-2">
+          <p className="text-sm font-semibold text-slate-900">설정</p>
+          <p className="text-sm leading-6 text-slate-400">
+            기본 설정과 데이터 관리, 관리자 기능을 한곳에서 정리할 수 있어요.
           </p>
         </div>
         <SettingsNavigation isAdmin={session.user.role === "ADMIN"} />

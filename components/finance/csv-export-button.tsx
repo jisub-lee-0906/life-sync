@@ -29,7 +29,7 @@ export function CsvExportButton({ disabled, onExport }: CsvExportButtonProps) {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="secondary"
       className="w-full justify-center sm:w-auto"
       disabled={disabled}
       onClick={async () => {

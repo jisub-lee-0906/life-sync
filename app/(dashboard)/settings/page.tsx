@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconPreferencesForm } from "@/components/settings/icon-preferences-form";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import { resolveIconPreferences } from "@/lib/settings";
@@ -27,15 +27,14 @@ export default async function SettingsPage() {
   const initialValues = resolveIconPreferences(currentSettings);
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>기본 설정</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <IconPreferencesForm initialValues={initialValues} />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>기본 설정</CardTitle>
+        <CardDescription>작게 보이는 아이콘까지 지금 취향에 맞게 맞춰 둘 수 있어요.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <IconPreferencesForm initialValues={initialValues} />
+      </CardContent>
+    </Card>
   );
 }

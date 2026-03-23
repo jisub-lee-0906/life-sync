@@ -14,11 +14,12 @@ import {
   type TransactionCursor,
   type TransactionPage,
 } from "@/actions/finance";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CsvExportButton } from "@/components/finance/csv-export-button";
 import { CsvUploader } from "@/components/finance/csv-uploader";
 import { QuickAddForm } from "@/components/finance/quick-add-form";
 import { TransactionList } from "@/components/finance/transaction-list";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CsvTransactionRow, QuickAddTransactionInput } from "@/lib/finance";
 import { useRecurringSyncStore } from "@/store";
 
@@ -172,6 +173,7 @@ export function FinanceClientShell({
       return;
     }
 
+    const previousItem = editingItem;
     const optimisticItem: FinanceTransactionViewModel = {
       ...editingItem,
       amount: Number(input.amount),
@@ -196,7 +198,7 @@ export function FinanceClientShell({
         setEditingItem(null);
         await refreshMonthTotal();
       } catch (error) {
-        applyOptimistic({ type: "replace", item: editingItem });
+        applyOptimistic({ type: "replace", item: previousItem });
         setErrorMessage(error instanceof Error ? error.message : "내역을 수정하지 못했어요.");
       }
     });
@@ -219,9 +221,7 @@ export function FinanceClientShell({
 
   async function handleDelete(id: string) {
     const deletedItem = basePage.items.find((item) => item.id === id);
-    if (!deletedItem) {
-      return;
-    }
+    if (!deletedItem) return;
 
     setBasePage((current) => reducer(current, { type: "remove", id }));
     if (editingItem?.id === id) {
@@ -262,15 +262,39 @@ export function FinanceClientShell({
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-[linear-gradient(180deg,#ffffff,#f8fbff)]">
+    <div className="space-y-5 sm:space-y-6">
+      <section>
+        <Card className="bg-[linear-gradient(180deg,#ffffff,#f8fbff)]">
+          <CardHeader>
+            <CardTitle>이번 달 지출</CardTitle>
+            <CardDescription>지금까지 쓴 금액을 가볍게 확인해 보세요.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-sm text-slate-400">총 지출</p>
+                <p className="mt-2 text-[2.2rem] font-semibold tracking-tight text-slate-900 sm:text-[2.6rem]">
+                  {monthExpenseTotal.toLocaleString("ko-KR")}원
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                이번 달 흐름을 더 가볍게 정리해 보세요.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card>
         <CardHeader>
-          <CardTitle>이번 달 지출은 {monthExpenseTotal.toLocaleString("ko-KR")}원이에요</CardTitle>
+          <CardTitle>{editingItem ? "내역 수정" : "빠른 입력"}</CardTitle>
           <CardDescription>
-            내역 추가부터 수정, CSV 가져오기와 내보내기까지 한 번에 정리할 수 있어요.
+            {editingItem
+              ? "바꿀 내용만 정리하고 바로 저장할 수 있어요."
+              : "자주 쓰는 항목부터 빠르게 기록할 수 있어요."}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent>
           {editingItem ? (
             <QuickAddForm
               initialValues={toInputValues(editingItem)}
@@ -282,28 +306,39 @@ export function FinanceClientShell({
           ) : (
             <QuickAddForm isPending={isPending} onSubmit={handleCreate} />
           )}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
-        <CsvUploader disabled={isPending} onImport={handleImport} />
-        <CsvExportButton disabled={!hasItems || isPending} onExport={handleExport} />
-      </div>
-
-          {errorMessage ? (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {errorMessage}
-            </p>
-          ) : null}
-
-          <TransactionList
-            hasMore={Boolean(basePage.nextCursor)}
-            isLoadingMore={isPending}
-            items={optimisticPage.items}
-            onDelete={handleDelete}
-            onEdit={setEditingItem}
-            onLoadMore={handleLoadMore}
-          />
         </CardContent>
       </Card>
+
+      <Card size="sm" className="bg-slate-50/75">
+        <CardHeader>
+          <CardTitle>CSV 관리</CardTitle>
+          <CardDescription>가져오기와 내보내기는 필요할 때만 조용하게 쓸 수 있어요.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <CsvUploader disabled={isPending} onImport={handleImport} />
+          <CsvExportButton disabled={!hasItems || isPending} onExport={handleExport} />
+          {editingItem ? (
+            <Button variant="ghost" onClick={() => setEditingItem(null)}>
+              수정 닫기
+            </Button>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {errorMessage ? (
+        <div className="rounded-[1.6rem] border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {errorMessage}
+        </div>
+      ) : null}
+
+      <TransactionList
+        hasMore={Boolean(basePage.nextCursor)}
+        isLoadingMore={isPending}
+        items={optimisticPage.items}
+        onDelete={handleDelete}
+        onEdit={setEditingItem}
+        onLoadMore={handleLoadMore}
+      />
     </div>
   );
 }

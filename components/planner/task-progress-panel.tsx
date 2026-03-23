@@ -7,7 +7,6 @@ import {
   updateTask,
   updateTaskProgress,
 } from "@/actions/planner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -153,28 +152,31 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
   }
 
   return (
-    <div className="space-y-4">
-      <form className="grid gap-3 rounded-3xl bg-slate-50 p-4 sm:grid-cols-4" onSubmit={submitTaskForm}>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>제목</span>
+    <div className="space-y-5">
+      <form
+        className="space-y-4 rounded-[1.8rem] border border-slate-200/70 bg-slate-50/80 p-5"
+        onSubmit={submitTaskForm}
+      >
+        <div className="flex flex-col gap-1">
+          <h3 className="text-lg font-semibold text-slate-900">
+            {editingTask ? "할 일 수정" : "새 할 일"}
+          </h3>
+          <p className="text-sm text-slate-400">제목부터 적고, 필요한 항목만 가볍게 고르면 충분해요.</p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_150px_150px_150px]">
           <input
             value={draft.title}
             onChange={(event) => handleDraftChange("title", event.target.value)}
             className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
-            placeholder="할 일을 적어 주세요"
+            placeholder="오늘 해야 할 일을 적어 주세요."
           />
-        </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>날짜</span>
           <input
             type="date"
             value={draft.date}
             onChange={(event) => handleDraftChange("date", event.target.value)}
             className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4"
           />
-        </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>우선순위</span>
           <select
             value={draft.priority}
             onChange={(event) =>
@@ -186,9 +188,6 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
             <option value="MEDIUM">보통</option>
             <option value="LOW">가볍게</option>
           </select>
-        </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>유형</span>
           <select
             value={draft.type}
             onChange={(event) =>
@@ -199,53 +198,63 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
             <option value="TASK">할 일</option>
             <option value="ROUTINE">루틴형</option>
           </select>
-        </label>
-        <div className="flex gap-2 sm:col-span-4">
-          <Button type="submit" disabled={isPending}>
-            {editingTask ? "할 일 저장하기" : "할 일 추가하기"}
-          </Button>
-          {editingTask ? (
-            <Button type="button" variant="outline" onClick={resetForm}>
-              취소
+        </div>
+
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            {errorMessage ? (
+              <p className="text-sm text-destructive">{errorMessage}</p>
+            ) : (
+              <p className="text-sm text-slate-400">진행률은 아래 목록에서 바로 조절할 수 있어요.</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {editingTask ? (
+              <Button type="button" variant="outline" onClick={resetForm}>
+                취소
+              </Button>
+            ) : null}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "저장하고 있어요" : editingTask ? "저장하기" : "추가하기"}
             </Button>
-          ) : null}
+          </div>
         </div>
       </form>
 
-      {errorMessage ? (
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      ) : null}
-
       {tasks.length === 0 ? (
-        <p className="rounded-3xl bg-slate-50 p-5 text-sm text-muted-foreground">
-          아직 할 일이 없어요.
-        </p>
+        <div className="rounded-[1.8rem] border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+          <p className="text-base font-semibold text-slate-700">아직 할 일이 없어요.</p>
+          <p className="mt-2 text-sm text-slate-400">위에서 먼저 한 개만 적어도 충분히 시작할 수 있어요.</p>
+        </div>
       ) : (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3">
           {tasks.map((task) => {
             const currentValue = task.progress;
 
             return (
-              <div key={task.id} className="rounded-3xl bg-slate-50 p-4 sm:p-5">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div key={task.id} className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <p className="font-medium">{task.title}</p>
-                    <p className="text-sm leading-6 text-muted-foreground">
+                    <p className="text-base font-semibold text-slate-900">{task.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-400">
                       {formatKoreanDateLabel(task.date)} · {formatTaskTypeLabel(task.type)} ·{" "}
                       {formatTaskPriorityLabel(task.priority)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <Badge variant="outline">{currentValue}%</Badge>
-                    <Button type="button" variant="ghost" onClick={() => beginEdit(task)}>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.72rem] font-semibold text-slate-600">
+                      {currentValue}%
+                    </span>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => beginEdit(task)}>
                       수정
                     </Button>
-                    <Button type="button" variant="ghost" onClick={() => removeTask(task.id)}>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => removeTask(task.id)}>
                       삭제
                     </Button>
                   </div>
                 </div>
-                <div className="rounded-2xl bg-white px-3 shadow-sm">
+
+                <div className="mt-5 rounded-[1.4rem] border border-slate-100 bg-slate-50 px-4 py-3">
                   <Slider
                     min={0}
                     max={100}
@@ -257,11 +266,6 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
                     }}
                   />
                 </div>
-                {isPending ? (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    슬라이더를 놓는 순간 저장돼요.
-                  </p>
-                ) : null}
               </div>
             );
           })}

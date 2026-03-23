@@ -52,7 +52,9 @@ export function RoutineTracker({ routines: initialRoutines }: { routines: Routin
         } else {
           const createdRoutine = await createRoutine({ title: draftTitle });
           setRoutines((current) =>
-            [...current, createdRoutine].sort((left, right) => left.title.localeCompare(right.title, "ko")),
+            [...current, createdRoutine].sort((left, right) =>
+              left.title.localeCompare(right.title, "ko"),
+            ),
           );
         }
         setDraftTitle("");
@@ -119,66 +121,82 @@ export function RoutineTracker({ routines: initialRoutines }: { routines: Routin
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-3xl bg-slate-50 p-4 sm:flex-row">
-        <input
-          value={draftTitle}
-          onChange={(event) => setDraftTitle(event.target.value)}
-          className="min-h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4"
-          placeholder="매일 반복할 루틴을 적어 주세요"
-        />
-        <div className="flex gap-2">
-          <Button type="button" disabled={isPending} onClick={submitRoutine}>
-            {editingRoutineId ? "루틴 저장하기" : "루틴 추가하기"}
-          </Button>
-          {editingRoutineId ? (
-            <Button type="button" variant="outline" onClick={resetForm}>
-              취소
-            </Button>
-          ) : null}
+    <div className="space-y-5">
+      <div className="space-y-4 rounded-[1.8rem] border border-slate-200/70 bg-slate-50/80 p-5">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {editingRoutineId ? "루틴 수정" : "새 루틴"}
+          </h3>
+          <p className="mt-1 text-sm text-slate-400">매일 이어가고 싶은 한 가지부터 가볍게 시작해 보세요.</p>
         </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            value={draftTitle}
+            onChange={(event) => setDraftTitle(event.target.value)}
+            className="min-h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4"
+            placeholder="예: 물 마시기, 10분 스트레칭"
+          />
+          <div className="flex gap-2">
+            {editingRoutineId ? (
+              <Button type="button" variant="outline" onClick={resetForm}>
+                취소
+              </Button>
+            ) : null}
+            <Button type="button" disabled={isPending} onClick={submitRoutine}>
+              {isPending ? "저장하고 있어요" : editingRoutineId ? "저장하기" : "추가하기"}
+            </Button>
+          </div>
+        </div>
+
+        {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
       </div>
 
-      {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-
       {routines.length === 0 ? (
-        <p className="rounded-3xl bg-slate-50 p-5 text-sm text-muted-foreground">
-          아직 루틴이 없어요.
-        </p>
+        <div className="rounded-[1.8rem] border border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+          <p className="text-base font-semibold text-slate-700">아직 루틴이 없어요.</p>
+          <p className="mt-2 text-sm text-slate-400">하나만 만들어도 매일 흐름이 훨씬 또렷해져요.</p>
+        </div>
       ) : (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-3">
           {routines.map((routine) => (
-            <div key={routine.id} className="rounded-3xl bg-slate-50 p-4 sm:p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <p className="font-medium">{routine.title}</p>
-                <div className="flex gap-2">
-                  <Button type="button" variant="ghost" onClick={() => beginEdit(routine)}>
+            <div key={routine.id} className="rounded-[1.8rem] border border-slate-200/70 bg-white p-5 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-slate-900">{routine.title}</p>
+                  <p className="mt-1 text-sm text-slate-400">이번 주에 체크한 흐름을 바로 볼 수 있어요.</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button type="button" size="sm" variant="ghost" onClick={() => beginEdit(routine)}>
                     수정
                   </Button>
-                  <Button type="button" variant="ghost" onClick={() => removeRoutine(routine.id)}>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => removeRoutine(routine.id)}>
                     삭제
                   </Button>
                 </div>
               </div>
-              <div className="-mx-1 overflow-x-auto pb-1">
-                <div className="grid min-w-[28rem] grid-cols-7 gap-2 px-1">
-                  {weekdays.map((day) => (
-                    <label
-                      key={day.key}
-                      className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl bg-white px-2 py-3 text-xs shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                    >
-                      <span>{day.label}</span>
-                      <input
-                        type="checkbox"
-                        checked={routine[day.key]}
-                        className="size-5 rounded border"
-                        onChange={(event) => {
-                          commitDayToggle(routine, day.key, event.target.checked);
-                        }}
-                      />
-                    </label>
-                  ))}
-                </div>
+
+              <div className="mt-5 grid grid-cols-7 gap-2">
+                {weekdays.map((day) => (
+                  <label
+                    key={day.key}
+                    className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-[1.3rem] border text-xs font-semibold transition-all duration-200 ${
+                      routine[day.key]
+                        ? "border-blue-100 bg-blue-50 text-primary"
+                        : "border-slate-200/70 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-white"
+                    }`}
+                  >
+                    <span>{day.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={routine[day.key]}
+                      className="size-4 rounded border-slate-300"
+                      onChange={(event) => {
+                        commitDayToggle(routine, day.key, event.target.checked);
+                      }}
+                    />
+                  </label>
+                ))}
               </div>
             </div>
           ))}
