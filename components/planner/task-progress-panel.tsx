@@ -83,6 +83,16 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
     event.preventDefault();
     setErrorMessage(null);
 
+    if (!draft.title.trim()) {
+      setErrorMessage("할 일 제목을 입력해 주세요.");
+      return;
+    }
+
+    if (!draft.date.trim()) {
+      setErrorMessage("날짜를 확인해 주세요.");
+      return;
+    }
+
     startTransition(async () => {
       try {
         if (editingTask) {
@@ -182,7 +192,7 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
             onChange={(event) =>
               handleDraftChange("priority", event.target.value as TaskDraft["priority"])
             }
-            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
+            className="select-field min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
           >
             <option value="HIGH">중요</option>
             <option value="MEDIUM">보통</option>
@@ -193,7 +203,7 @@ export function TaskProgressPanel({ tasks: initialTasks }: { tasks: TaskOverview
             onChange={(event) =>
               handleDraftChange("type", event.target.value as TaskDraft["type"])
             }
-            className="min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
+            className="select-field min-h-11 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-4"
           >
             <option value="TASK">할 일</option>
             <option value="ROUTINE">루틴형</option>

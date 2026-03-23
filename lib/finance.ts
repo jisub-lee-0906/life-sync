@@ -18,6 +18,37 @@ function parseCalendarDateString(dateString: string) {
   return parseTimeZoneDateOnlyToUtc(dateString, SEOUL_TIME_ZONE);
 }
 
+function normalizeIntegerInput(value: unknown) {
+  if (typeof value === "number") {
+    return Number.isNaN(value) ? undefined : value;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return undefined;
+    }
+
+    const numericValue = Number(trimmed.replace(/,/g, ""));
+    return Number.isNaN(numericValue) ? undefined : numericValue;
+  }
+
+  return value;
+}
+
+const amountSchema = z.preprocess(
+  normalizeIntegerInput,
+  z.number().int().min(0, "금액은 0원 이상이어야 해요."),
+);
+
+const recurrenceDateSchema = z.preprocess(
+  (value) => {
+    const normalizedValue = normalizeIntegerInput(value);
+    return normalizedValue === undefined ? undefined : normalizedValue;
+  },
+  z.union([z.number().int(), z.null(), z.undefined()]),
+);
+
 function validateRecurrenceDate(
   value: { isRecurring: boolean; recurrenceDate?: number | null },
   ctx: z.RefinementCtx,
@@ -29,7 +60,7 @@ function validateRecurrenceDate(
   if (value.recurrenceDate < 1 || value.recurrenceDate > 31) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "반복일은 1일부터 31일 사이로 입력해 주세요.",
+      message: "반복일은 1일부터 31일 사이여야 해요.",
       path: ["recurrenceDate"],
     });
   }
@@ -37,12 +68,12 @@ function validateRecurrenceDate(
 
 export const quickAddTransactionFormSchema = z
   .object({
-    amount: z.number().int().min(0, "금액은 0원 이상이어야 해요."),
+    amount: amountSchema,
     category: z.string().trim().min(1, "분류를 입력해 주세요.").max(120),
     date: calendarDateStringSchema,
     isRecurring: z.boolean(),
     note: z.string().trim().max(1000),
-    recurrenceDate: z.union([z.number().int(), z.null(), z.undefined()]).optional(),
+    recurrenceDate: recurrenceDateSchema.optional(),
     type: z.enum(transactionTypeValues),
   })
   .superRefine(validateRecurrenceDate);
@@ -51,24 +82,23 @@ export const recurringSyncSchema = z.object({
   yearMonth: z.string().trim().regex(/^\d{4}-\d{2}$/, "월 형식을 확인해 주세요."),
 });
 
-export const quickAddTransactionSchema = quickAddTransactionFormSchema
-  .transform((value) => {
-    const isRecurring = value.isRecurring ?? false;
-    const normalizedNote = value.note?.trim() || null;
-    const recurrenceDate =
-      isRecurring && value.recurrenceDate != null ? value.recurrenceDate : null;
+export const quickAddTransactionSchema = quickAddTransactionFormSchema.transform((value) => {
+  const isRecurring = value.isRecurring ?? false;
+  const normalizedNote = value.note?.trim() || null;
+  const recurrenceDate =
+    isRecurring && value.recurrenceDate != null ? value.recurrenceDate : null;
 
-    return {
-      amount: value.amount,
-      category: value.category.trim(),
-      date: parseCalendarDateString(value.date),
-      dateString: value.date,
-      isRecurring,
-      note: normalizedNote,
-      recurrenceDate,
-      type: value.type,
-    };
-  });
+  return {
+    amount: value.amount,
+    category: value.category.trim(),
+    date: parseCalendarDateString(value.date),
+    dateString: value.date,
+    isRecurring,
+    note: normalizedNote,
+    recurrenceDate,
+    type: value.type,
+  };
+});
 
 export const updateTransactionSchema = quickAddTransactionFormSchema.extend({
   id: z.string().uuid(),
@@ -143,7 +173,8 @@ const requiredCsvHeaders = [
   "recurrenceDate",
 ] as const;
 
-export type QuickAddTransactionInput = z.infer<typeof quickAddTransactionFormSchema>;
+export type QuickAddTransactionFormValues = z.input<typeof quickAddTransactionFormSchema>;
+export type QuickAddTransactionInput = z.output<typeof quickAddTransactionFormSchema>;
 export type TransactionUpdateInput = z.infer<typeof updateTransactionSchema>;
 export type NormalizedTransactionInput = z.output<typeof quickAddTransactionSchema>;
 export type CsvTransactionRow = {
@@ -237,7 +268,10 @@ export function resolveRecurringDate(yearMonth: string, recurrenceDate: number) 
   const { endExclusive } = buildTimeZoneMonthRange(yearMonth, SEOUL_TIME_ZONE);
   const lastDay = new Date(endExclusive.getTime() - 1).getUTCDate();
   const safeDay = Math.min(Math.max(recurrenceDate, 1), lastDay);
-  return parseTimeZoneDateOnlyToUtc(`${yearMonth}-${`${safeDay}`.padStart(2, "0")}`, SEOUL_TIME_ZONE);
+  return parseTimeZoneDateOnlyToUtc(
+    `${yearMonth}-${`${safeDay}`.padStart(2, "0")}`,
+    SEOUL_TIME_ZONE,
+  );
 }
 
 export function resolveTransactionYearMonth(date: Date) {

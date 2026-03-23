@@ -40,7 +40,7 @@ test("quickAddTransactionSchema still validates repeat day for recurring transac
         recurrenceDate: 99,
         type: "EXPENSE",
       }),
-    /반복일은 1일부터 31일 사이로 입력해 주세요/,
+    /반복일은 1일부터 31일 사이여야 해요/,
   );
 });
 
@@ -85,7 +85,7 @@ test("normalizeQuickAddFormData preserves blank amounts so validation can reject
 
   assert.throws(
     () => quickAddTransactionSchema.parse(normalizeQuickAddFormData(formData)),
-    /expected number, received undefined/i,
+    /금액은 0원 이상이어야 해요|expected number, received undefined/i,
   );
 });
 
@@ -183,23 +183,11 @@ test("calculateMonthExpenseTotal uses Seoul calendar boundaries at month edges",
 });
 
 test("resolveRecurringDate snaps overflowing recurrence days to the end of the month", () => {
-  assert.equal(
-    formatTransactionDate(resolveRecurringDate("2026-02", 31)),
-    "2026-02-28",
-  );
-  assert.equal(
-    formatTransactionDate(resolveRecurringDate("2028-02", 31)),
-    "2028-02-29",
-  );
+  assert.equal(formatTransactionDate(resolveRecurringDate("2026-02", 31)), "2026-02-28");
+  assert.equal(formatTransactionDate(resolveRecurringDate("2028-02", 31)), "2028-02-29");
 });
 
 test("resolveTransactionYearMonth uses Seoul calendar boundaries", () => {
-  assert.equal(
-    resolveTransactionYearMonth(new Date("2026-03-31T14:59:59.000Z")),
-    "2026-03",
-  );
-  assert.equal(
-    resolveTransactionYearMonth(new Date("2026-03-31T15:00:00.000Z")),
-    "2026-04",
-  );
+  assert.equal(resolveTransactionYearMonth(new Date("2026-03-31T14:59:59.000Z")), "2026-03");
+  assert.equal(resolveTransactionYearMonth(new Date("2026-03-31T15:00:00.000Z")), "2026-04");
 });

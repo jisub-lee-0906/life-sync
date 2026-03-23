@@ -35,7 +35,14 @@ async function requireSettingsUserId() {
 }
 
 function parseBackupInput(input: string | FullBackupPayload) {
-  const payload = typeof input === "string" ? JSON.parse(input) : input;
+  let payload: unknown;
+
+  try {
+    payload = typeof input === "string" ? JSON.parse(input) : input;
+  } catch {
+    throw new Error("백업 파일 형식을 다시 확인해 주세요.");
+  }
+
   const parsed = backupPayloadSchema.parse(payload);
 
   if (parsed.mandalarts.length > 1) {

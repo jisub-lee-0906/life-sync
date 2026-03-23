@@ -24,6 +24,19 @@ const positionToGrid: Record<number, string> = {
   8: "col-start-3 row-start-3",
 };
 
+function validateBoardDraft(input: { coreGoal: string; cellGoals: string[] }) {
+  if (!input.coreGoal.trim()) {
+    return "중심 목표를 입력해 주세요.";
+  }
+
+  const emptyCellIndex = input.cellGoals.findIndex((goal) => !goal.trim());
+  if (emptyCellIndex >= 0) {
+    return `${emptyCellIndex + 1}번 목표를 입력해 주세요.`;
+  }
+
+  return null;
+}
+
 function EmptyBoard({
   isPending,
   onSubmit,
@@ -40,14 +53,22 @@ function EmptyBoard({
       className="space-y-5 rounded-[2rem] border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
       onSubmit={(event) => {
         event.preventDefault();
+        const nextInput = { cellGoals, coreGoal };
+        const validationError = validateBoardDraft(nextInput);
+
+        if (validationError) {
+          setErrorMessage(validationError);
+          return;
+        }
+
         setErrorMessage(null);
-        onSubmit({ cellGoals, coreGoal }).catch((error) => {
+        onSubmit(nextInput).catch((error) => {
           setErrorMessage(error instanceof Error ? error.message : "만다라트를 만들지 못했어요.");
         });
       }}
     >
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-slate-900">처음 목표를 펼쳐볼까요?</h2>
+        <h2 className="text-xl font-semibold text-slate-900">처음 목표를 채워볼까요?</h2>
         <p className="text-sm leading-6 text-slate-400">
           중심 목표 하나와 주변 목표 여덟 개만 적으면 바로 보드를 만들 수 있어요.
         </p>
@@ -66,7 +87,7 @@ function EmptyBoard({
       <div className="grid gap-3 sm:grid-cols-2">
         {cellGoals.map((goal, index) => (
           <label key={index} className="flex flex-col gap-2 text-sm">
-            <span className="text-slate-500">{index + 1}번째 목표</span>
+            <span className="text-slate-500">{index + 1}번 목표</span>
             <input
               value={goal}
               onChange={(event) =>
@@ -77,7 +98,7 @@ function EmptyBoard({
                 )
               }
               className="min-h-11 rounded-2xl border border-slate-200 px-4"
-              placeholder="작게 쪼갠 목표를 적어 주세요."
+              placeholder="작게 쪼갠 목표를 적어 주세요"
             />
           </label>
         ))}
@@ -117,6 +138,48 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
     setCellGoalDraft(nextSelectedCell?.goal ?? "");
   }
 
+  function saveCoreGoal() {
+    if (!coreGoalDraft.trim()) {
+      setErrorMessage("중심 목표를 입력해 주세요.");
+      return;
+    }
+
+    setErrorMessage(null);
+    startTransition(async () => {
+      try {
+        const nextBoard = await updateMandalartCoreGoal({
+          coreGoal: coreGoalDraft,
+          mandalartId: board!.id,
+        });
+        syncBoard(nextBoard);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "중심 목표를 저장하지 못했어요.");
+      }
+    });
+  }
+
+  function saveSelectedCell() {
+    if (!selectedCell) return;
+
+    if (!cellGoalDraft.trim()) {
+      setErrorMessage("목표를 입력해 주세요.");
+      return;
+    }
+
+    setErrorMessage(null);
+    startTransition(async () => {
+      try {
+        const nextBoard = await updateMandalartCell({
+          cellId: selectedCell.id,
+          goal: cellGoalDraft,
+        });
+        syncBoard(nextBoard);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "목표를 저장하지 못했어요.");
+      }
+    });
+  }
+
   if (!board) {
     return (
       <EmptyBoard
@@ -144,23 +207,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
             onChange={(event) => setCoreGoalDraft(event.target.value)}
             className="min-h-11 flex-1 rounded-2xl border border-slate-200 px-4"
           />
-          <Button
-            type="button"
-            disabled={isPending}
-            onClick={() => {
-              startTransition(async () => {
-                try {
-                  const nextBoard = await updateMandalartCoreGoal({
-                    coreGoal: coreGoalDraft,
-                    mandalartId: board.id,
-                  });
-                  syncBoard(nextBoard);
-                } catch (error) {
-                  setErrorMessage(error instanceof Error ? error.message : "중심 목표를 저장하지 못했어요.");
-                }
-              });
-            }}
-          >
+          <Button type="button" disabled={isPending} onClick={saveCoreGoal}>
             저장하기
           </Button>
           <Button
@@ -168,6 +215,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
             variant="outline"
             disabled={isPending}
             onClick={() => {
+              setErrorMessage(null);
               startTransition(async () => {
                 try {
                   await deleteMandalart(board.id);
@@ -204,6 +252,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                       : "border-slate-200/70 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
                   } ${positionToGrid[cell.position]}`}
                   onClick={() => {
+                    setErrorMessage(null);
                     selectMandalartCell(cell.id);
                     setCellGoalDraft(cell.goal);
                   }}
@@ -223,7 +272,9 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
 
             <div className="col-start-2 row-start-2 flex items-center justify-center rounded-[1.8rem] bg-slate-900 p-5 text-center text-white shadow-[0_16px_36px_rgba(15,23,42,0.16)]">
               <div>
-                <p className="text-xs font-semibold tracking-[0.12em] text-white/55 uppercase">중심 목표</p>
+                <p className="text-xs font-semibold tracking-[0.12em] text-white/55 uppercase">
+                  중심 목표
+                </p>
                 <p className="mt-3 font-heading text-xl font-semibold leading-snug sm:text-2xl">
                   {board.coreGoal}
                 </p>
@@ -244,9 +295,11 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">집중 보기</p>
+                      <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">
+                        자세히 보기
+                      </p>
                       <p className="mt-2 text-lg font-semibold text-slate-900">
-                        {selectedCell.position}번째 목표
+                        {selectedCell.position}번 목표
                       </p>
                     </div>
                     <Button type="button" variant="ghost" onClick={() => selectMandalartCell(null)}>
@@ -261,23 +314,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                   />
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => {
-                        startTransition(async () => {
-                          try {
-                            const nextBoard = await updateMandalartCell({
-                              cellId: selectedCell.id,
-                              goal: cellGoalDraft,
-                            });
-                            syncBoard(nextBoard);
-                          } catch (error) {
-                            setErrorMessage(error instanceof Error ? error.message : "목표를 저장하지 못했어요.");
-                          }
-                        });
-                      }}
-                    >
+                    <Button type="button" disabled={isPending} onClick={saveSelectedCell}>
                       저장하기
                     </Button>
                     <Button
@@ -285,6 +322,7 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                       variant="outline"
                       disabled={isPending}
                       onClick={() => {
+                        setErrorMessage(null);
                         startTransition(async () => {
                           try {
                             const nextBoard = await toggleMandalartCellCompleted({
@@ -294,7 +332,9 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                             syncBoard(nextBoard);
                           } catch (error) {
                             setErrorMessage(
-                              error instanceof Error ? error.message : "완료 상태를 저장하지 못했어요.",
+                              error instanceof Error
+                                ? error.message
+                                : "완료 상태를 저장하지 못했어요.",
                             );
                           }
                         });
@@ -313,9 +353,9 @@ export function MandalartBoard({ board: initialBoard }: { board: MandalartState 
                   className="flex h-full items-center justify-center rounded-[1.7rem] border border-dashed border-slate-200 bg-white px-6 text-center"
                 >
                   <div>
-                    <p className="text-base font-semibold text-slate-700">하나를 골라 집중해 보세요.</p>
+                    <p className="text-base font-semibold text-slate-700">하나를 골라 자세히 보세요</p>
                     <p className="mt-2 text-sm leading-6 text-slate-400">
-                      외곽 목표를 누르면 더 자세히 다듬을 수 있어요.
+                      바깥 목표를 누르면 내용을 더 자세히 다듬을 수 있어요.
                     </p>
                   </div>
                 </motion.div>

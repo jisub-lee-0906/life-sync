@@ -15,6 +15,7 @@ import {
 import {
   formatDateInputValue,
   quickAddTransactionFormSchema,
+  type QuickAddTransactionFormValues,
   type QuickAddTransactionInput,
 } from "@/lib/finance";
 
@@ -46,7 +47,7 @@ export function QuickAddForm({
   onSubmit,
 }: QuickAddFormProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const form = useForm<QuickAddTransactionInput>({
+  const form = useForm<QuickAddTransactionFormValues, unknown, QuickAddTransactionInput>({
     defaultValues: buildDefaults(initialValues),
     resolver: zodResolver(quickAddTransactionFormSchema),
   });
@@ -90,7 +91,7 @@ export function QuickAddForm({
           <span className="text-slate-500">구분</span>
           <select
             {...form.register("type")}
-            className="min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5"
+            className="select-field min-h-11 rounded-2xl border border-slate-200 bg-white px-4 py-2.5"
           >
             <option value="EXPENSE">지출</option>
             <option value="INCOME">수입</option>
