@@ -2,7 +2,19 @@ import { z } from "zod";
 
 export const DEFAULT_SCHEDULE_ICON = "🗓️";
 export const DEFAULT_TODO_ICON = "✅";
-export const BACKUP_PAYLOAD_VERSION = "1.2";
+export const BACKUP_PAYLOAD_VERSION = "1.3";
+export const SUPPORTED_BACKUP_PAYLOAD_VERSIONS = ["1.2", "1.3"] as const;
+export const DEFAULT_EXPENSE_CATEGORIES = [
+  "식비",
+  "교통비",
+  "쇼핑",
+  "주거",
+  "공과금",
+  "의료",
+  "구독",
+  "기타",
+] as const;
+export const DEFAULT_INCOME_CATEGORIES = ["월급", "용돈", "환급", "기타"] as const;
 
 export const iconPreferencesSchema = z.object({
   scheduleIcon: z
@@ -27,6 +39,15 @@ const backupTransactionSchema = z.object({
   note: z.string().nullable(),
   recurrenceDate: z.number().int().min(1).max(31).nullable(),
   sourceTransactionId: z.string().uuid().nullable(),
+  type: z.enum(["INCOME", "EXPENSE"]),
+  userId: z.string().uuid(),
+});
+
+const backupTransactionCategorySchema = z.object({
+  archivedAt: z.string().datetime().nullable(),
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(120),
+  sortOrder: z.number().int().min(0),
   type: z.enum(["INCOME", "EXPENSE"]),
   userId: z.string().uuid(),
 });
@@ -75,12 +96,14 @@ export const backupPayloadSchema = z.object({
   routines: z.array(backupRoutineSchema),
   settings: iconPreferencesSchema.nullable(),
   tasks: z.array(backupTaskSchema),
+  transactionCategories: z.array(backupTransactionCategorySchema).default([]),
   transactions: z.array(backupTransactionSchema),
-  version: z.literal(BACKUP_PAYLOAD_VERSION),
+  version: z.enum(SUPPORTED_BACKUP_PAYLOAD_VERSIONS),
 });
 
 export type IconPreferencesInput = z.infer<typeof iconPreferencesSchema>;
 export type FullBackupPayload = z.infer<typeof backupPayloadSchema>;
+export type TransactionCategoryBackupItem = z.infer<typeof backupTransactionCategorySchema>;
 
 export function resolveIconPreferences(
   input?: Partial<IconPreferencesInput> | null,
@@ -88,5 +111,12 @@ export function resolveIconPreferences(
   return {
     scheduleIcon: input?.scheduleIcon?.trim() || DEFAULT_SCHEDULE_ICON,
     todoIcon: input?.todoIcon?.trim() || DEFAULT_TODO_ICON,
+  };
+}
+
+export function getDefaultTransactionCategories() {
+  return {
+    expense: [...DEFAULT_EXPENSE_CATEGORIES],
+    income: [...DEFAULT_INCOME_CATEGORIES],
   };
 }

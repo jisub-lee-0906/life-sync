@@ -104,6 +104,36 @@ export const transactions = pgTable(
   ],
 );
 
+export const transactionCategories = pgTable(
+  "transaction_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: transactionTypeEnum("type").notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    archivedAt: timestamp("archived_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    createdAt: timestamp("created_at", {
+      mode: "date",
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", {
+      mode: "date",
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [unique("transaction_categories_user_type_name_unique").on(table.userId, table.type, table.name)],
+);
+
 export const tasks = pgTable(
   "tasks",
   {
@@ -194,6 +224,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     references: [settings.userId],
   }),
   tasks: many(tasks),
+  transactionCategories: many(transactionCategories),
   transactions: many(transactions),
 }));
 
@@ -215,6 +246,13 @@ export const transactionsRelations = relations(transactions, ({ many, one }) => 
   }),
   user: one(users, {
     fields: [transactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const transactionCategoriesRelations = relations(transactionCategories, ({ one }) => ({
+  user: one(users, {
+    fields: [transactionCategories.userId],
     references: [users.id],
   }),
 }));
@@ -282,6 +320,8 @@ export const insertMandalartCellSchema = createInsertSchema(mandalartCells, {
 
 export const selectSettingsSchema = createSelectSchema(settings);
 export const insertSettingsSchema = createInsertSchema(settings);
+export const selectTransactionCategorySchema = createSelectSchema(transactionCategories);
+export const insertTransactionCategorySchema = createInsertSchema(transactionCategories);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -299,3 +339,5 @@ export type MandalartCell = typeof mandalartCells.$inferSelect;
 export type NewMandalartCell = typeof mandalartCells.$inferInsert;
 export type Settings = typeof settings.$inferSelect;
 export type NewSettings = typeof settings.$inferInsert;
+export type TransactionCategory = typeof transactionCategories.$inferSelect;
+export type NewTransactionCategory = typeof transactionCategories.$inferInsert;

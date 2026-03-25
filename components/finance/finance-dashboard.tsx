@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getCurrentMonthExpenseTotal, getTransactions } from "@/actions/finance";
+import {
+  getFinanceSummary,
+  getTransactionCategories,
+  getTransactions,
+} from "@/actions/finance";
+import { getAnalyticsData } from "@/actions/planner";
 import { FinanceClientShell } from "@/components/finance/finance-client-shell";
 import { formatTimeZoneYearMonthValue, SEOUL_TIME_ZONE } from "@/lib/timezone-date";
 
@@ -12,16 +17,20 @@ export async function FinanceDashboard() {
   }
 
   const currentMonth = formatTimeZoneYearMonthValue(new Date(), SEOUL_TIME_ZONE);
-  const [initialPage, monthExpenseTotal] = await Promise.all([
+  const [initialAnalytics, initialCategories, initialPage, initialSummary] = await Promise.all([
+    getAnalyticsData(currentMonth),
+    getTransactionCategories(),
     getTransactions(),
-    getCurrentMonthExpenseTotal(currentMonth),
+    getFinanceSummary(currentMonth),
   ]);
 
   return (
     <FinanceClientShell
+      initialExpenseByCategory={initialAnalytics.expenseByCategory}
       currentMonth={currentMonth}
-      initialMonthExpenseTotal={monthExpenseTotal}
+      initialCategories={initialCategories}
       initialPage={initialPage}
+      initialSummary={initialSummary}
     />
   );
 }

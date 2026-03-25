@@ -8,6 +8,7 @@ import {
 } from "@/lib/timezone-date";
 
 export const transactionTypeValues = ["INCOME", "EXPENSE"] as const;
+export const transactionCategoryNameSchema = z.string().trim().min(1).max(120);
 
 const calendarDateStringSchema = z
   .string()
@@ -34,6 +35,10 @@ function normalizeIntegerInput(value: unknown) {
   }
 
   return value;
+}
+
+export function normalizeTransactionText(value: string) {
+  return value.normalize("NFC").trim();
 }
 
 const amountSchema = z.preprocess(
@@ -69,10 +74,12 @@ function validateRecurrenceDate(
 export const quickAddTransactionFormSchema = z
   .object({
     amount: amountSchema,
-    category: z.string().trim().min(1, "분류를 입력해 주세요.").max(120),
+    category: transactionCategoryNameSchema.refine((value) => value.length > 0, {
+      message: "분류를 입력해 주세요.",
+    }),
     date: calendarDateStringSchema,
     isRecurring: z.boolean(),
-    note: z.string().trim().max(1000),
+    note: z.string().max(1000).transform((value) => normalizeTransactionText(value)),
     recurrenceDate: recurrenceDateSchema.optional(),
     type: z.enum(transactionTypeValues),
   })
@@ -90,7 +97,7 @@ export const quickAddTransactionSchema = quickAddTransactionFormSchema.transform
 
   return {
     amount: value.amount,
-    category: value.category.trim(),
+    category: normalizeTransactionText(value.category),
     date: parseCalendarDateString(value.date),
     dateString: value.date,
     isRecurring,
@@ -197,10 +204,10 @@ export function normalizeCsvUploadRow(row: Record<string, string | undefined>) {
 
   return {
     amount: row.amount?.replace(/,/g, "") ?? "",
-    category: row.category?.trim() ?? "",
+    category: normalizeTransactionText(row.category ?? ""),
     date: row.date?.trim() ?? "",
     isRecurring: row.isRecurring?.trim() ?? "false",
-    note: row.note?.trim() ?? "",
+    note: normalizeTransactionText(row.note ?? ""),
     recurrenceDate: row.recurrenceDate?.trim() ?? "",
     type: row.type?.trim().toUpperCase() ?? "",
   } satisfies CsvTransactionRow;
@@ -254,6 +261,43 @@ export function calculateMonthExpenseTotal(
       ? sum + transaction.amount
       : sum;
   }, 0);
+}
+
+export function calculateMonthFinanceSummary(
+  transactions: Array<{
+    amount: number;
+    date: Date | string;
+    type: "INCOME" | "EXPENSE";
+  }>,
+  yearMonth: string,
+) {
+  return transactions.reduce(
+    (summary, transaction) => {
+      const transactionDate =
+        typeof transaction.date === "string"
+          ? transaction.date
+          : formatTransactionDate(transaction.date);
+
+      if (!transactionDate.startsWith(`${yearMonth}-`)) {
+        return summary;
+      }
+
+      if (transaction.type === "EXPENSE") {
+        summary.totalExpense += transaction.amount;
+      } else {
+        summary.totalIncome += transaction.amount;
+      }
+
+      summary.netAmount = summary.totalIncome - summary.totalExpense;
+      return summary;
+    },
+    {
+      netAmount: 0,
+      totalExpense: 0,
+      totalIncome: 0,
+      yearMonth,
+    },
+  );
 }
 
 export function formatDateInputValue(date: Date) {

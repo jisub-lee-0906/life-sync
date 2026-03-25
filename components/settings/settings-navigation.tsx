@@ -16,6 +16,11 @@ const baseItems = [
     label: "기본 설정",
   },
   {
+    description: "수입과 지출 분류를 관리해요.",
+    href: "/settings/categories",
+    label: "분류 관리",
+  },
+  {
     description: "백업 파일을 저장하거나 복구해요.",
     href: "/settings/backup",
     label: "백업",

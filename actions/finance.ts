@@ -2,27 +2,32 @@
 
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { auth } from "@/auth";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import {
   type CsvTransactionRow,
-  calculateMonthExpenseTotal,
+  calculateMonthFinanceSummary,
   formatTransactionDate,
   importCsvRowSchema,
+  normalizeTransactionText,
   normalizeQuickAddFormData,
   quickAddTransactionSchema,
   recurringSyncSchema,
   resolveRecurringDate,
   resolveTransactionYearMonth,
+  transactionCategoryNameSchema,
+  transactionTypeValues,
   type QuickAddTransactionInput,
 } from "@/lib/finance";
+import { getDefaultTransactionCategories } from "@/lib/settings";
 import { buildTransactionCursor } from "@/lib/transaction-cursor";
 import {
   buildTimeZoneMonthRange,
   formatTimeZoneYearMonthValue,
   SEOUL_TIME_ZONE,
 } from "@/lib/timezone-date";
-import { transactions } from "@/drizzle/schema";
+import { transactionCategories, transactions } from "@/drizzle/schema";
 
 export type TransactionCursor = {
   date: string;
@@ -47,6 +52,36 @@ export type TransactionPage = {
   items: FinanceTransactionViewModel[];
   nextCursor: TransactionCursor;
 };
+
+export type FinanceSummary = {
+  netAmount: number;
+  totalExpense: number;
+  totalIncome: number;
+  yearMonth: string;
+};
+
+export type TransactionCategoryViewModel = {
+  archivedAt: string | null;
+  id: string;
+  name: string;
+  sortOrder: number;
+  type: "INCOME" | "EXPENSE";
+};
+
+const transactionCategoryInputSchema = z.object({
+  name: transactionCategoryNameSchema,
+  type: z.enum(transactionTypeValues),
+});
+
+const transactionCategoryUpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: transactionCategoryNameSchema,
+});
+
+const transactionCategoryReorderSchema = z.object({
+  orderedIds: z.array(z.string().uuid()),
+  type: z.enum(transactionTypeValues),
+});
 
 async function requireUserId() {
   const session = await auth();
@@ -88,9 +123,147 @@ function normalizeQuickAddInput(input: FormData | QuickAddTransactionInput) {
   return input;
 }
 
+function toCategoryViewModel(
+  category: typeof transactionCategories.$inferSelect,
+): TransactionCategoryViewModel {
+  return {
+    archivedAt: category.archivedAt?.toISOString() ?? null,
+    id: category.id,
+    name: category.name,
+    sortOrder: category.sortOrder,
+    type: category.type,
+  };
+}
+
+function buildCategoryKey(type: "INCOME" | "EXPENSE", name: string) {
+  return `${type}:${name}`;
+}
+
+async function ensureTransactionCategories(userId: string) {
+  const existing = await db.query.transactionCategories.findMany({
+    orderBy: (table, { asc }) => [asc(table.type), asc(table.sortOrder), asc(table.name)],
+    where: (table, operators) => operators.eq(table.userId, userId),
+  });
+  const historical = await db.query.transactions.findMany({
+    columns: { category: true, type: true },
+    where: (table, operators) => operators.eq(table.userId, userId),
+  });
+  const defaults = getDefaultTransactionCategories();
+  const existingKeys = new Set(existing.map((item) => buildCategoryKey(item.type, item.name)));
+  const nextSortOrder = {
+    EXPENSE:
+      existing.filter((item) => item.type === "EXPENSE").reduce((max, item) => Math.max(max, item.sortOrder), -1) +
+      1,
+    INCOME:
+      existing.filter((item) => item.type === "INCOME").reduce((max, item) => Math.max(max, item.sortOrder), -1) + 1,
+  };
+  const rowsToInsert: Array<typeof transactionCategories.$inferInsert> = [];
+
+  for (const name of defaults.expense) {
+    const normalizedName = normalizeTransactionText(name);
+    const key = buildCategoryKey("EXPENSE", normalizedName);
+    if (existingKeys.has(key)) continue;
+    existingKeys.add(key);
+    rowsToInsert.push({
+      archivedAt: null,
+      name: normalizedName,
+      sortOrder: nextSortOrder.EXPENSE++,
+      type: "EXPENSE",
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  for (const name of defaults.income) {
+    const normalizedName = normalizeTransactionText(name);
+    const key = buildCategoryKey("INCOME", normalizedName);
+    if (existingKeys.has(key)) continue;
+    existingKeys.add(key);
+    rowsToInsert.push({
+      archivedAt: null,
+      name: normalizedName,
+      sortOrder: nextSortOrder.INCOME++,
+      type: "INCOME",
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  for (const item of historical) {
+    const normalizedName = normalizeTransactionText(item.category);
+    const key = buildCategoryKey(item.type, normalizedName);
+    if (normalizedName.length === 0 || existingKeys.has(key)) continue;
+    existingKeys.add(key);
+    rowsToInsert.push({
+      archivedAt: null,
+      name: normalizedName,
+      sortOrder: nextSortOrder[item.type]++,
+      type: item.type,
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  if (rowsToInsert.length > 0) {
+    await db.insert(transactionCategories).values(rowsToInsert).onConflictDoNothing();
+  }
+
+  return db.query.transactionCategories.findMany({
+    orderBy: (table, { asc }) => [asc(table.type), asc(table.sortOrder), asc(table.name)],
+    where: (table, operators) => operators.eq(table.userId, userId),
+  });
+}
+
+async function ensureTransactionCategory(
+  userId: string,
+  type: "INCOME" | "EXPENSE",
+  category: string,
+) {
+  const normalizedCategory = normalizeTransactionText(category);
+
+  if (normalizedCategory.length === 0) {
+    return;
+  }
+
+  const existing = await db.query.transactionCategories.findFirst({
+    where: (table, operators) =>
+      and(
+        operators.eq(table.userId, userId),
+        operators.eq(table.type, type),
+        operators.eq(table.name, normalizedCategory),
+      ),
+  });
+
+  if (existing) {
+    if (existing.archivedAt) {
+      await db
+        .update(transactionCategories)
+        .set({ archivedAt: null, updatedAt: new Date() })
+        .where(eq(transactionCategories.id, existing.id));
+    }
+    return;
+  }
+
+  const currentCategories = await ensureTransactionCategories(userId);
+  const currentSortOrder =
+    currentCategories
+      .filter((item) => item.type === type)
+      .reduce((max, item) => Math.max(max, item.sortOrder), -1) + 1;
+
+  await db.insert(transactionCategories).values({
+    archivedAt: null,
+    name: normalizedCategory,
+    sortOrder: currentSortOrder,
+    type,
+    updatedAt: new Date(),
+    userId,
+  }).onConflictDoNothing();
+}
+
 export async function createTransaction(input: FormData | QuickAddTransactionInput) {
   const userId = await requireUserId();
   const parsed = quickAddTransactionSchema.parse(normalizeQuickAddInput(input));
+  await ensureTransactionCategory(userId, parsed.type, parsed.category);
 
   const [createdTransaction] = await db
     .insert(transactions)
@@ -125,6 +298,7 @@ export async function updateTransaction(input: {
 }) {
   const userId = await requireUserId();
   const parsed = quickAddTransactionSchema.parse(input);
+  await ensureTransactionCategory(userId, parsed.type, parsed.category);
 
   const [updatedTransaction] = await db
     .update(transactions)
@@ -215,6 +389,10 @@ export async function importCSV(data: CsvTransactionRow[]) {
     return { insertedCount: 0 };
   }
 
+  for (const row of normalizedRows) {
+    await ensureTransactionCategory(userId, row.type, row.category);
+  }
+
   await db.insert(transactions).values(
     normalizedRows.map((row) => ({
       amount: row.amount,
@@ -257,26 +435,170 @@ export async function exportTransactions() {
 }
 
 export async function getCurrentMonthExpenseTotal(yearMonth?: string) {
+  const summary = await getFinanceSummary(yearMonth);
+  return summary.totalExpense;
+}
+
+export async function getFinanceSummary(yearMonth?: string): Promise<FinanceSummary> {
   const userId = await requireUserId();
   const resolvedYearMonth =
     yearMonth ?? formatTimeZoneYearMonthValue(new Date(), SEOUL_TIME_ZONE);
-  const { endExclusive, start } = buildTimeZoneMonthRange(
-    resolvedYearMonth,
-    SEOUL_TIME_ZONE,
-  );
+  const { endExclusive, start } = buildTimeZoneMonthRange(resolvedYearMonth, SEOUL_TIME_ZONE);
 
   const rows = await db.query.transactions.findMany({
     columns: { amount: true, date: true, type: true },
     where: (table, operators) =>
       and(
         operators.eq(table.userId, userId),
-        operators.eq(table.type, "EXPENSE"),
         operators.gte(table.date, start),
         operators.lt(table.date, endExclusive),
       ),
   });
 
-  return calculateMonthExpenseTotal(rows, resolvedYearMonth);
+  return calculateMonthFinanceSummary(rows, resolvedYearMonth);
+}
+
+export async function getTransactionCategories(includeArchived = false) {
+  const userId = await requireUserId();
+  const categories = await ensureTransactionCategories(userId);
+
+  return categories
+    .filter((item) => includeArchived || !item.archivedAt)
+    .map(toCategoryViewModel);
+}
+
+export async function createTransactionCategory(input: {
+  name: string;
+  type: "INCOME" | "EXPENSE";
+}) {
+  const userId = await requireUserId();
+  const parsed = transactionCategoryInputSchema.parse(input);
+  const existingCategories = await ensureTransactionCategories(userId);
+  const nextSortOrder =
+    existingCategories
+      .filter((item) => item.type === parsed.type)
+      .reduce((max, item) => Math.max(max, item.sortOrder), -1) + 1;
+
+  await db
+    .insert(transactionCategories)
+    .values({
+      archivedAt: null,
+      name: normalizeTransactionText(parsed.name),
+      sortOrder: nextSortOrder,
+      type: parsed.type,
+      updatedAt: new Date(),
+      userId,
+    })
+    .onConflictDoUpdate({
+      set: {
+        archivedAt: null,
+        updatedAt: new Date(),
+      },
+      target: [
+        transactionCategories.userId,
+        transactionCategories.type,
+        transactionCategories.name,
+      ],
+    });
+
+  revalidatePath("/finance");
+  revalidatePath("/settings/categories");
+
+  return getTransactionCategories(true);
+}
+
+export async function updateTransactionCategory(input: { id: string; name: string }) {
+  const userId = await requireUserId();
+  const parsed = transactionCategoryUpdateSchema.parse(input);
+  const category = await db.query.transactionCategories.findFirst({
+    where: (table, operators) =>
+      and(operators.eq(table.id, parsed.id), operators.eq(table.userId, userId)),
+  });
+
+  if (!category) {
+    throw new Error("수정할 분류를 찾지 못했어요.");
+  }
+
+  const nextName = normalizeTransactionText(parsed.name);
+  const previousName = category.name;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(transactionCategories)
+      .set({ name: nextName, updatedAt: new Date() })
+      .where(eq(transactionCategories.id, category.id));
+
+    await tx
+      .update(transactions)
+      .set({ category: nextName })
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, category.type),
+          eq(transactions.category, previousName),
+        ),
+      );
+  });
+
+  revalidatePath("/analytics");
+  revalidatePath("/calendar");
+  revalidatePath("/finance");
+  revalidatePath("/settings/categories");
+
+  return getTransactionCategories(true);
+}
+
+export async function archiveTransactionCategory(id: string) {
+  const userId = await requireUserId();
+  const category = await db.query.transactionCategories.findFirst({
+    where: (table, operators) =>
+      and(operators.eq(table.id, id), operators.eq(table.userId, userId)),
+  });
+
+  if (!category) {
+    throw new Error("보관할 분류를 찾지 못했어요.");
+  }
+
+  await db
+    .update(transactionCategories)
+    .set({ archivedAt: new Date(), updatedAt: new Date() })
+    .where(eq(transactionCategories.id, id));
+
+  revalidatePath("/finance");
+  revalidatePath("/settings/categories");
+
+  return getTransactionCategories(true);
+}
+
+export async function reorderTransactionCategories(
+  input: { orderedIds: string[]; type: "INCOME" | "EXPENSE" },
+) {
+  const userId = await requireUserId();
+  const parsed = transactionCategoryReorderSchema.parse(input);
+  const categories = await db.query.transactionCategories.findMany({
+    columns: { id: true },
+    where: (table, operators) =>
+      and(operators.eq(table.userId, userId), operators.eq(table.type, parsed.type)),
+  });
+  const ownedIds = new Set(categories.map((item) => item.id));
+
+  if (parsed.orderedIds.some((id) => !ownedIds.has(id))) {
+    throw new Error("정렬할 수 없는 분류가 포함되어 있어요.");
+  }
+
+  await db.transaction(async (tx) => {
+    for (const [index, id] of parsed.orderedIds.entries()) {
+      await tx
+        .update(transactionCategories)
+        .set({ sortOrder: index, updatedAt: new Date() })
+        .where(eq(transactionCategories.id, id));
+    }
+  });
+
+  revalidatePath("/finance");
+  revalidatePath("/settings/categories");
+
+  return getTransactionCategories(true);
 }
 
 export async function syncRecurringTransactions(yearMonth: string) {

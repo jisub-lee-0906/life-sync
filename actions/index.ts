@@ -1,12 +1,18 @@
 export { approveUser, rejectUser } from "@/actions/admin";
 export {
+  archiveTransactionCategory,
+  createTransactionCategory,
   createTransaction,
   deleteTransaction,
   exportTransactions,
+  getFinanceSummary,
   getCurrentMonthExpenseTotal,
+  getTransactionCategories,
   getTransactions,
   importCSV,
+  reorderTransactionCategories,
   syncRecurringTransactions,
+  updateTransactionCategory,
   updateTransaction,
 } from "@/actions/finance";
 export {

@@ -72,10 +72,18 @@ const routeDefinitions: DashboardRouteDefinition[] = [
     },
   },
   {
+    href: "/settings/categories",
+    mobilePrimary: false,
+    meta: {
+      description: "수입과 지출 분류를 관리해요.",
+      label: "분류 관리",
+    },
+  },
+  {
     href: "/settings/admin",
     mobilePrimary: false,
     meta: {
-      description: "가입 요청을 검토하고 처리해요.",
+      description: "가입 승인 관리",
       label: "관리",
     },
   },
@@ -90,9 +98,9 @@ export function isDashboardRouteActive(pathname: string, href: string) {
 }
 
 export function getDashboardRouteMeta(pathname: string): DashboardRouteMeta {
-  const matchedRoute = routeDefinitions.find(({ href }) =>
-    isExactOrNestedRoute(pathname, href),
-  );
+  const matchedRoute = [...routeDefinitions]
+    .sort((left, right) => right.href.length - left.href.length)
+    .find(({ href }) => isExactOrNestedRoute(pathname, href));
 
   return matchedRoute?.meta ?? fallbackRouteMeta;
 }

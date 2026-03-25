@@ -25,9 +25,14 @@ export async function GET() {
     );
   }
 
-  const [transactions, tasks, routines, mandalarts, userSettings] = await Promise.all([
+  const [transactions, transactionCategories, tasks, routines, mandalarts, userSettings] =
+    await Promise.all([
     db.query.transactions.findMany({
       orderBy: (table, { desc }) => [desc(table.date), desc(table.id)],
+      where: (table, { eq }) => eq(table.userId, userId),
+    }),
+    db.query.transactionCategories.findMany({
+      orderBy: (table, { asc }) => [asc(table.type), asc(table.sortOrder), asc(table.name)],
       where: (table, { eq }) => eq(table.userId, userId),
     }),
     db.query.tasks.findMany({
@@ -88,6 +93,14 @@ export async function GET() {
       title: task.title,
       type: task.type,
       userId: task.userId,
+    })),
+    transactionCategories: transactionCategories.map((category) => ({
+      archivedAt: category.archivedAt?.toISOString() ?? null,
+      id: category.id,
+      name: category.name,
+      sortOrder: category.sortOrder,
+      type: category.type,
+      userId: category.userId,
     })),
     transactions: transactions.map((transaction) => ({
       amount: transaction.amount,

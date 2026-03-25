@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
+  calculateMonthFinanceSummary,
   calculateMonthExpenseTotal,
   formatDateInputValue,
   formatTransactionDate,
@@ -179,6 +180,25 @@ test("calculateMonthExpenseTotal uses Seoul calendar boundaries at month edges",
       "2026-03",
     ),
     9000,
+  );
+});
+
+test("calculateMonthFinanceSummary returns expense, income, and net totals for the requested month", () => {
+  assert.deepEqual(
+    calculateMonthFinanceSummary(
+      [
+        { amount: 9000, date: "2026-03-02", type: "EXPENSE" },
+        { amount: 15000, date: "2026-03-03", type: "INCOME" },
+        { amount: 2500, date: "2026-02-27", type: "EXPENSE" },
+      ],
+      "2026-03",
+    ),
+    {
+      netAmount: 6000,
+      totalExpense: 9000,
+      totalIncome: 15000,
+      yearMonth: "2026-03",
+    },
   );
 });
 

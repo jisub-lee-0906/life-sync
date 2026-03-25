@@ -38,7 +38,7 @@ test("database defaults stay aligned with the runtime icon fallbacks", () => {
 test("backup payload version stays aligned with the exported contract", () => {
   const version: FullBackupPayload["version"] = BACKUP_PAYLOAD_VERSION;
 
-  assert.equal(version, "1.2");
+  assert.equal(version, "1.3");
 });
 
 test("backup payload schema preserves recurring source references for restore mapping", () => {
@@ -71,6 +71,7 @@ test("backup payload schema preserves recurring source references for restore ma
       todoIcon: "✅",
     },
     tasks: [],
+    transactionCategories: [],
     transactions: [
       {
         amount: 10000,
@@ -99,9 +100,10 @@ test("backup payload schema preserves recurring source references for restore ma
         userId,
       },
     ],
-    version: "1.2",
+    version: "1.3",
   });
 
   assert.equal(parsed.transactions[1]?.sourceTransactionId, rootTransactionId);
   assert.equal(parsed.mandalarts[0]?.cells.length, 8);
+  assert.deepEqual(parsed.transactionCategories, []);
 });

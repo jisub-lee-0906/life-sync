@@ -9,11 +9,13 @@ import {
   routines,
   settings,
   tasks,
+  transactionCategories,
   transactions,
 } from "@/drizzle/schema";
 import { db, hasDatabaseUrl } from "@/lib/db";
 import {
   backupPayloadSchema,
+  getDefaultTransactionCategories,
   iconPreferencesSchema,
   resolveIconPreferences,
   type FullBackupPayload,
@@ -50,6 +52,69 @@ function parseBackupInput(input: string | FullBackupPayload) {
   }
 
   return parsed;
+}
+
+function buildRestoredTransactionCategories(
+  userId: string,
+  backup: ReturnType<typeof parseBackupInput>,
+) {
+  if (backup.transactionCategories.length > 0) {
+    return backup.transactionCategories.map((category) => ({
+      archivedAt: category.archivedAt ? new Date(category.archivedAt) : null,
+      name: category.name,
+      sortOrder: category.sortOrder,
+      type: category.type,
+      updatedAt: new Date(),
+      userId,
+    }));
+  }
+
+  const defaults = getDefaultTransactionCategories();
+  const seen = new Set<string>();
+  const rows: Array<typeof transactionCategories.$inferInsert> = [];
+  const nextSortOrder = { EXPENSE: 0, INCOME: 0 };
+
+  for (const name of defaults.expense) {
+    seen.add(`EXPENSE:${name}`);
+    rows.push({
+      archivedAt: null,
+      name,
+      sortOrder: nextSortOrder.EXPENSE++,
+      type: "EXPENSE",
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  for (const name of defaults.income) {
+    seen.add(`INCOME:${name}`);
+    rows.push({
+      archivedAt: null,
+      name,
+      sortOrder: nextSortOrder.INCOME++,
+      type: "INCOME",
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  for (const transaction of backup.transactions) {
+    const key = `${transaction.type}:${transaction.category}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    rows.push({
+      archivedAt: null,
+      name: transaction.category,
+      sortOrder: nextSortOrder[transaction.type]++,
+      type: transaction.type,
+      updatedAt: new Date(),
+      userId,
+    });
+  }
+
+  return rows;
 }
 
 export async function updateIcons(input: {
@@ -94,6 +159,7 @@ export async function restoreBackup(input: string | FullBackupPayload) {
 
   await db.transaction(async (tx) => {
     await tx.delete(settings).where(eq(settings.userId, userId));
+    await tx.delete(transactionCategories).where(eq(transactionCategories.userId, userId));
     await tx.delete(tasks).where(eq(tasks.userId, userId));
     await tx.delete(routines).where(eq(routines.userId, userId));
     await tx.delete(mandalarts).where(eq(mandalarts.userId, userId));
@@ -155,6 +221,11 @@ export async function restoreBackup(input: string | FullBackupPayload) {
         .returning({ id: transactions.id });
 
       transactionIdMap.set(transaction.id, inserted.id);
+    }
+
+    const restoredCategories = buildRestoredTransactionCategories(userId, backup);
+    if (restoredCategories.length > 0) {
+      await tx.insert(transactionCategories).values(restoredCategories);
     }
 
     if (backup.tasks.length > 0) {
@@ -236,6 +307,7 @@ export async function restoreBackup(input: string | FullBackupPayload) {
   revalidatePath("/finance");
   revalidatePath("/mandalart");
   revalidatePath("/settings");
+  revalidatePath("/settings/categories");
   revalidatePath("/todo-routine");
 
   return { restored: true };
