@@ -149,8 +149,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-[100dvh] bg-slate-50">
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1600px] gap-3 px-3 py-3 sm:px-4 sm:py-4 lg:gap-5 lg:px-6 xl:px-8">
         <aside className="sticky top-4 hidden h-[calc(100dvh-2rem)] w-[248px] shrink-0 overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.04)] lg:flex lg:flex-col xl:w-[286px] xl:p-5">
-          <div className="space-y-6">
-            <div className="space-y-2 px-1">
+          <div className="flex min-h-0 flex-1 flex-col gap-6">
+            <div className="shrink-0 space-y-2 px-1">
               <p className="font-heading text-[1.65rem] font-semibold tracking-tight text-slate-900">
                 LifeSync
               </p>
@@ -158,7 +158,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 필요한 정보만 조용하게 정리해요.
               </p>
             </div>
-            <SideNavigation pathname={pathname} />
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <SideNavigation pathname={pathname} />
+            </div>
           </div>
         </aside>
 
