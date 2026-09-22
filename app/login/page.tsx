@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveLoginRedirectTarget } from "@/lib/auth-redirect";
 
-export default async function LoginPage(props: PageProps<"/login">) {
+type LoginPageProps = {
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+};
+
+export default async function LoginPage(props: LoginPageProps) {
   const searchParams = await props.searchParams;
   const redirectTo = resolveLoginRedirectTarget(searchParams.callbackUrl);
 

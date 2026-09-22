@@ -84,7 +84,7 @@ public/           Icons, PWA assets, generated service worker output
 ### 1. Install
 
 ```bash
-npm install
+npm ci
 ```
 
 ### 2. Configure environment variables
@@ -115,7 +115,7 @@ npm run dev
 
 ## Database Commands
 
-Drizzle 설정 파일은 [`drizzle.config.ts`](/D:/workspace/life-sync/drizzle.config.ts)에 있습니다.
+Drizzle 설정 파일은 [`drizzle.config.ts`](drizzle.config.ts)에 있습니다.
 
 스키마를 데이터베이스에 반영할 때:
 
@@ -133,12 +133,15 @@ npx drizzle-kit studio
 
 ```bash
 npm run dev      # local dev server
-npm run build    # production build (webpack + standalone output)
+SKIP_DB_PUSH=1 npm run build  # local production build; prevents any schema push
 npm run start    # run built app
 npm run lint     # eslint
 npx tsc --noEmit # type check
 ```
 
+## Local verification safety
+
+`npm run build` has a deployment database-sync pre-step. For local verification, always set `SKIP_DB_PUSH=1` so no schema push is attempted. `npm run test` covers pure `lib/` logic only; browser E2E tests require configured local authentication and database fixtures and are not safe against a production service.
 ## Deployment Notes
 
 - `next.config.ts`에 `output: "standalone"`이 설정되어 있어 Coolify/Docker 배포에 적합한 산출물을 생성합니다.
