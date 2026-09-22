@@ -1,29 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { toCsv } from "@/lib/csv-export";
 
 type CsvExportButtonProps = {
   disabled?: boolean;
   onExport: () => Promise<Record<string, string>[]>;
 };
-
-function toCsv(rows: Record<string, string>[]) {
-  if (rows.length === 0) {
-    return "";
-  }
-
-  const headers = Object.keys(rows[0]);
-  const lines = [
-    headers.join(","),
-    ...rows.map((row) =>
-      headers
-        .map((header) => `"${(row[header] ?? "").replace(/"/g, '""')}"`)
-        .join(","),
-    ),
-  ];
-
-  return lines.join("\n");
-}
 
 export function CsvExportButton({ disabled, onExport }: CsvExportButtonProps) {
   return (

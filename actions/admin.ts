@@ -1,25 +1,16 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
-import { db, hasDatabaseUrl } from "@/lib/db";
+import { db } from "@/lib/db";
 import { users } from "@/drizzle/schema";
+import { requireApprovedAdmin } from "@/lib/server-auth";
 
 async function assertAdmin() {
-  const session = await auth();
-
-  if (session?.user?.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
+  await requireApprovedAdmin();
 }
 
 async function updateUserStatus(userId: string, status: "APPROVED" | "REJECTED") {
   await assertAdmin();
-
-  if (!hasDatabaseUrl) {
-    throw new Error("Database connection is not configured.");
-  }
-
   await db.update(users).set({ status }).where(eq(users.id, userId));
 }
 

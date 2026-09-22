@@ -3,6 +3,9 @@ import { z } from "zod";
 export const DEFAULT_SCHEDULE_ICON = "🗓️";
 export const DEFAULT_TODO_ICON = "✅";
 export const BACKUP_PAYLOAD_VERSION = "1.3";
+export const MAX_BACKUP_BYTES = 1_000_000;
+export const MAX_BACKUP_RECORDS = 10_000;
+export const MAX_BACKUP_NOTE_LENGTH = 4_000;
 export const SUPPORTED_BACKUP_PAYLOAD_VERSIONS = ["1.2", "1.3"] as const;
 export const DEFAULT_EXPENSE_CATEGORIES = [
   "식비",
@@ -36,7 +39,7 @@ const backupTransactionSchema = z.object({
   derivedYearMonth: z.string().regex(/^\d{4}-\d{2}$/).nullable(),
   id: z.string().uuid(),
   isRecurring: z.boolean(),
-  note: z.string().nullable(),
+  note: z.string().max(MAX_BACKUP_NOTE_LENGTH).nullable(),
   recurrenceDate: z.number().int().min(1).max(31).nullable(),
   sourceTransactionId: z.string().uuid().nullable(),
   type: z.enum(["INCOME", "EXPENSE"]),
@@ -90,16 +93,37 @@ const backupMandalartSchema = z.object({
   userId: z.string().uuid(),
 });
 
-export const backupPayloadSchema = z.object({
-  exportedAt: z.string().datetime(),
-  mandalarts: z.array(backupMandalartSchema),
-  routines: z.array(backupRoutineSchema),
-  settings: iconPreferencesSchema.nullable(),
-  tasks: z.array(backupTaskSchema),
-  transactionCategories: z.array(backupTransactionCategorySchema).default([]),
-  transactions: z.array(backupTransactionSchema),
-  version: z.enum(SUPPORTED_BACKUP_PAYLOAD_VERSIONS),
-});
+export const backupPayloadSchema = z
+  .object({
+    exportedAt: z.string().datetime(),
+    mandalarts: z.array(backupMandalartSchema).max(1),
+    routines: z.array(backupRoutineSchema).max(MAX_BACKUP_RECORDS),
+    settings: iconPreferencesSchema.nullable(),
+    tasks: z.array(backupTaskSchema).max(MAX_BACKUP_RECORDS),
+    transactionCategories: z.array(backupTransactionCategorySchema).max(MAX_BACKUP_RECORDS).default([]),
+    transactions: z.array(backupTransactionSchema).max(MAX_BACKUP_RECORDS),
+    version: z.enum(SUPPORTED_BACKUP_PAYLOAD_VERSIONS),
+  })
+  .superRefine((payload, context) => {
+    const recordCount =
+      payload.mandalarts.length +
+      payload.routines.length +
+      payload.tasks.length +
+      payload.transactionCategories.length +
+      payload.transactions.length;
+    if (recordCount > MAX_BACKUP_RECORDS) {
+      context.addIssue({
+        code: "custom",
+        message: `백업 레코드는 최대 ${MAX_BACKUP_RECORDS}개까지 복구할 수 있어요.`,
+      });
+    }
+  });
+
+export function assertBackupInputSize(input: string) {
+  if (new TextEncoder().encode(input).byteLength > MAX_BACKUP_BYTES) {
+    throw new Error(`백업 파일은 최대 ${MAX_BACKUP_BYTES}바이트까지 복구할 수 있어요.`);
+  }
+}
 
 export type IconPreferencesInput = z.infer<typeof iconPreferencesSchema>;
 export type FullBackupPayload = z.infer<typeof backupPayloadSchema>;

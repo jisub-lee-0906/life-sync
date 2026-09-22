@@ -2,7 +2,6 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
 import {
   mandalartCells,
   mandalarts,
@@ -12,8 +11,10 @@ import {
   transactionCategories,
   transactions,
 } from "@/drizzle/schema";
-import { db, hasDatabaseUrl } from "@/lib/db";
+import { db } from "@/lib/db";
+import { requireApprovedUser } from "@/lib/server-auth";
 import {
+  assertBackupInputSize,
   backupPayloadSchema,
   getDefaultTransactionCategories,
   iconPreferencesSchema,
@@ -22,27 +23,21 @@ import {
 } from "@/lib/settings";
 
 async function requireSettingsUserId() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    throw new Error("로그인이 필요해요.");
-  }
-
-  if (!hasDatabaseUrl) {
-    throw new Error("데이터베이스 연결을 확인해 주세요.");
-  }
-
-  return userId;
+  return (await requireApprovedUser()).id;
 }
 
 function parseBackupInput(input: string | FullBackupPayload) {
   let payload: unknown;
 
-  try {
-    payload = typeof input === "string" ? JSON.parse(input) : input;
-  } catch {
-    throw new Error("백업 파일 형식을 다시 확인해 주세요.");
+  if (typeof input === "string") {
+    assertBackupInputSize(input);
+    try {
+      payload = JSON.parse(input);
+    } catch {
+      throw new Error("백업 파일 형식을 다시 확인해 주세요.");
+    }
+  } else {
+    payload = input;
   }
 
   const parsed = backupPayloadSchema.parse(payload);

@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --webpack",
-    "prebuild": "node scripts/run-deploy-db-sync.mjs",
     "build": "next build --webpack",
     "postbuild": "node scripts/prepare-standalone.mjs",
     "start": "node .next/standalone/server.js",
@@ -15,12 +14,11 @@
     "test:e2e:all": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "db:push": "drizzle-kit push",
-    "db:push:force": "drizzle-kit push --force",
-    "db:deploy": "node scripts/run-deploy-db-sync.mjs",
+    "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@auth/drizzle-adapter": "^1.11.1",
+    "@auth/drizzle-adapter": "^1.11.3",
     "@base-ui/react": "^1.3.0",
     "@hookform/resolvers": "^5.2.2",
     "@serwist/next": "^9.5.7",
@@ -30,8 +28,8 @@
     "date-fns-tz": "^3.2.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
-    "next": "16.2.1",
-    "next-auth": "^5.0.0-beta.30",
+    "next": "^16.3.6",
+    "next-auth": "^5.0.0-beta.32",
     "papaparse": "^5.5.3",
     "postgres": "^3.4.8",
     "react": "19.2.4",
@@ -46,6 +44,14 @@
     "vaul": "^1.1.2",
     "zustand": "^5.0.12"
   },
+  "overrides": {
+    "@serwist/next": {
+      "browserslist": "4.29.0"
+    },
+    "minimatch@3.1.5": {
+      "brace-expansion": "1.1.21"
+    }
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
@@ -58,7 +64,7 @@
     "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "^16.3.6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

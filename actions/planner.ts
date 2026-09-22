@@ -2,8 +2,8 @@
 
 import { and, asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/auth";
-import { db, hasDatabaseUrl } from "@/lib/db";
+import { db } from "@/lib/db";
+import { requireApprovedUser } from "@/lib/server-auth";
 import {
   buildDaySummary,
   formatDateOnlyValue,
@@ -34,18 +34,7 @@ import {
 import { mandalartCells, mandalarts, routines, tasks } from "@/drizzle/schema";
 
 async function requirePlannerUserId() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    throw new Error("로그인이 필요해요.");
-  }
-
-  if (!hasDatabaseUrl) {
-    throw new Error("데이터베이스 연결을 확인해 주세요.");
-  }
-
-  return userId;
+  return (await requireApprovedUser()).id;
 }
 
 export async function getCalendarData(yearMonth: string): Promise<CalendarMonthSummary> {

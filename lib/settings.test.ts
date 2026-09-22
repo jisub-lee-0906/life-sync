@@ -3,6 +3,9 @@ import test from "node:test";
 import { settings } from "@/drizzle/schema";
 import {
   BACKUP_PAYLOAD_VERSION,
+  MAX_BACKUP_BYTES,
+  MAX_BACKUP_NOTE_LENGTH,
+  assertBackupInputSize,
   DEFAULT_SCHEDULE_ICON,
   DEFAULT_TODO_ICON,
   backupPayloadSchema,
@@ -106,4 +109,42 @@ test("backup payload schema preserves recurring source references for restore ma
   assert.equal(parsed.transactions[1]?.sourceTransactionId, rootTransactionId);
   assert.equal(parsed.mandalarts[0]?.cells.length, 8);
   assert.deepEqual(parsed.transactionCategories, []);
+});
+
+
+test("backup input rejects oversized byte payloads before JSON parsing", () => {
+  assert.throws(() => assertBackupInputSize("x".repeat(MAX_BACKUP_BYTES + 1)));
+});
+
+test("backup schema rejects notes beyond the documented restore limit", () => {
+  const valid = backupPayloadSchema.parse({
+    exportedAt: "2026-03-23T00:00:00.000Z",
+    mandalarts: [],
+    routines: [],
+    settings: null,
+    tasks: [],
+    transactionCategories: [],
+    transactions: [],
+    version: BACKUP_PAYLOAD_VERSION,
+  });
+  assert.equal(valid.transactions.length, 0);
+
+  assert.throws(() =>
+    backupPayloadSchema.parse({
+      ...valid,
+      transactions: [{
+        amount: 1,
+        category: "category",
+        date: "2026-03-23T00:00:00.000Z",
+        derivedYearMonth: null,
+        id: "33333333-3333-4333-8333-333333333333",
+        isRecurring: false,
+        note: "x".repeat(MAX_BACKUP_NOTE_LENGTH + 1),
+        recurrenceDate: null,
+        sourceTransactionId: null,
+        type: "EXPENSE",
+        userId: "11111111-1111-4111-8111-111111111111",
+      }],
+    }),
+  );
 });

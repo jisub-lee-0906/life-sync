@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { db, hasDatabaseUrl } from "@/lib/db";
+import { db } from "@/lib/db";
+import { AccessDeniedError, requireApprovedUser } from "@/lib/server-auth";
 import { BACKUP_PAYLOAD_VERSION, type FullBackupPayload } from "@/lib/settings";
 import { formatTimeZoneDateOnlyValue } from "@/lib/timezone-date";
 
@@ -11,14 +11,13 @@ function buildFilenameDate() {
 }
 
 export async function GET() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
-  }
-
-  if (!hasDatabaseUrl) {
+  let userId: string;
+  try {
+    userId = (await requireApprovedUser()).id;
+  } catch (error) {
+    if (error instanceof AccessDeniedError) {
+      return NextResponse.json({ error: "권한이 없어요." }, { status: 403 });
+    }
     return NextResponse.json(
       { error: "데이터베이스 연결을 확인해 주세요." },
       { status: 503 },
@@ -122,6 +121,8 @@ export async function GET() {
     headers: {
       "Content-Disposition": `attachment; filename="lifesync-backup-${buildFilenameDate()}.json"`,
       "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store, private",
+      Pragma: "no-cache",
     },
   });
 }
