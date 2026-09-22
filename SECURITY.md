@@ -19,3 +19,9 @@ Backup restore accepts at most 1,000,000 UTF-8 bytes, 10,000 total records, and 
 ## Database deployment
 
 `npm run build` does not mutate the database. Generate reviewed Drizzle migrations under `drizzle/migrations`, then run `npm run db:migrate` only in an explicitly approved deployment step with the intended `DATABASE_URL`. Do not use forced schema push for production deployment.
+
+## Development-tool advisory status (2026-09-23)
+
+The production-only npm audit reports no findings. The full audit still reports four moderate entries along the development/migration chain `drizzle-kit` → `@esbuild-kit/esm-loader` → `@esbuild-kit/core-utils` → `esbuild`; these are dependency-chain entries, not four independent application flaws. The older esbuild development-server issue is tracked as [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99).
+
+The audit tool does not propose a compatible update for that legacy loader chain. A breaking downgrade or unverified esbuild override has not been applied. Do not run the affected esbuild development server; keep migration/admin tooling out of public-facing services, and use reviewed migration commands only against the intended database. This residual finding is not a claim that production or arbitrary deployment configurations are vulnerability-free.

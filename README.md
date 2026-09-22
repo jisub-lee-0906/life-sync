@@ -117,34 +117,39 @@ npm run dev
 
 Drizzle 설정 파일은 [`drizzle.config.ts`](drizzle.config.ts)에 있습니다.
 
-스키마를 데이터베이스에 반영할 때:
+검토된 migration을 적용하는 명시적 배포 단계:
 
 ```bash
-npx drizzle-kit push
+npm run db:migrate
 ```
 
-필요 시 Drizzle Studio:
+`db:push`는 개발용 스키마 동기화 명령입니다. 운영 데이터베이스에는 사용하지 마세요. 필요 시 Drizzle Studio:
 
 ```bash
-npx drizzle-kit studio
+npm run db:studio
 ```
 
 ## Available Commands
 
 ```bash
 npm run dev      # local dev server
-SKIP_DB_PUSH=1 npm run build  # local production build; prevents any schema push
+npm run build    # local production build; does not mutate the database
 npm run start    # run built app
 npm run lint     # eslint
+npm run test     # lib unit tests
+npm run test:e2e # Chromium E2E, with local auth/database fixtures
 npx tsc --noEmit # type check
 ```
 
-## Local verification safety
+## Verification and maturity
 
-`npm run build` has a deployment database-sync pre-step. For local verification, always set `SKIP_DB_PUSH=1` so no schema push is attempted. `npm run test` covers pure `lib/` logic only; browser E2E tests require configured local authentication and database fixtures and are not safe against a production service.
+`npm run build` has no database-sync pre-step. `npm run db:migrate` remains an explicit, reviewed deployment operation. The checked unit tests cover `lib/` logic only; frontend/browser build success does not establish an operational service. Full browser E2E, live OAuth, production database, proxy/HTTPS, backup retention, and a complete user journey have not been run as part of this repository readiness check.
 ## Deployment Notes
 
 - `next.config.ts`에 `output: "standalone"`이 설정되어 있어 Coolify/Docker 배포에 적합한 산출물을 생성합니다.
 - PWA 서비스 워커는 Serwist를 통해 빌드 시 `public/sw.js`로 생성됩니다.
 - 승인 기반 인증 구조를 사용하므로 첫 관리자 계정은 `ADMIN_EMAILS`에 포함된 이메일로 로그인해야 합니다.
 
+## Automated verification (2026-09-23)
+
+No GitHub Actions workflows or runs are configured/recorded. The local test/build records above are not a remote CI pass.
